@@ -1,5 +1,6 @@
+
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:peer_net/app_routes.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -16,17 +17,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<Map<String, String>> onboardingData = [
     {
-      "image": "assets/images/peers.svg",
+      "image": "assets/images/peers.png",
       "title": "Connect with Peers",
       "subtitle": "Join forums, chat groups, and study together."
     },
     {
-      "image": "assets/images/updated.svg",
+      "image": "assets/images/updated.png",
       "title": "Stay Updated",
       "subtitle": "Have all required resources."
     },
     {
-      "image": "assets/images/assist.svg",
+      "image": "assets/images/assist.png",
       "title": "Smart Support",
       "subtitle": "Ask our AI assistant anything, anytime."
     },
@@ -39,13 +40,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.ease
       );
     } else {
-      Navigator.pushReplacementNamed(context, '/auth'); // Navigate to login/signup
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.authScreen
+      ); // Navigate to login/signup
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppStyles.backgroundColor,
       body: Column(
         children: [
           Expanded(
@@ -55,26 +60,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               onPageChanged: (index) => setState(() => _currentPage = index),
               itemBuilder: (context, index) => Column(
                 children: [
-                  Container(
+                  SizedBox(
                     height: MediaQuery.of(context).size.height * 0.65,
                     width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(40),
-                        bottomRight: Radius.circular(40),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 10,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
-                      child: SvgPicture.asset(
+                      child: Image.asset(
                         onboardingData[index]["image"]!,
                         fit: BoxFit.contain,
                       ),
