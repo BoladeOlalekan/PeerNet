@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class OtpEntity {
   final String email;
   final String otp;
@@ -13,7 +15,7 @@ class OtpEntity {
     return {
       'email': email,
       'otp': otp,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 
@@ -21,7 +23,7 @@ class OtpEntity {
     return OtpEntity(
       email: map['email'],
       otp: map['otp'],
-      createdAt: DateTime.parse(map['createdAt']),
+      createdAt: (map['createdAt'] as Timestamp).toDate(),
     );
   }
 }

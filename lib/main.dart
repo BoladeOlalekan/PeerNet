@@ -2,38 +2,48 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:peer_net/app_routes.dart';
-import 'package:peer_net/features/auth/presentation/auth.dart';
-import 'package:peer_net/features/home/home_screen.dart';
-import 'package:peer_net/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:peer_net/base/routing/app_routes.dart';
 import 'package:peer_net/firebase_options.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() async{
+final sharedPrefsProvider = Provider<SharedPreferences>((ref) {
+  throw UnimplementedError();
+});
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(ProviderScope(child: MainApp(),));
+
+  final prefs = await SharedPreferences.getInstance();
+
   SystemChrome.setSystemUIOverlayStyle(
-    SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent, // make status bar see-through
-      statusBarIconBrightness: Brightness.light, // for light or dark icons
-    )
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+    ),
+  );
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPrefsProvider.overrideWithValue(prefs),
+      ],
+      child: const MainApp(),
+    ),
   );
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends ConsumerWidget {
   const MainApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(goRouterProvider);
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      home: OnboardingScreen(),
-      routes: {
-        AppRoutes.authScreen: (context) => const AuthScreen(),
-        AppRoutes.homeScreen: (context) => const HomeScreen()
-      },
+      routerConfig: router,
     );
   }
 }

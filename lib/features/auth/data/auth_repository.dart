@@ -10,10 +10,15 @@ class AuthRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  User? get currentUser => _auth.currentUser;
+
+  bool get isLoggedIn => _auth.currentUser != null;
+
   Future<User?> createUser({
     required String email,
     required String password,
     required String name,
+    required String nickname,
     required String level,
     required String department
   }) async {

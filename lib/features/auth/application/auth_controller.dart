@@ -23,6 +23,7 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
     required String email,
     required String password,
     required String name,
+    required String nickname,
     required String level,
     required String department
   }) async {
@@ -42,6 +43,7 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
     required String email,
     required String password,
     required String name,
+    required String nickname,
     required String level,
     required String department,
     required String enteredOtp,
@@ -55,6 +57,7 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
         email: email,
         password: password,
         name: name,
+        nickname: nickname,
         level: level,
         department: department,
       );

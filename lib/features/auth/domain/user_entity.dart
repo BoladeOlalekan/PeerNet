@@ -1,6 +1,7 @@
 class UserEntity {
   final String uid;
   final String name;
+  final String nickname;
   final String email;
   final String level;
   final String department;
@@ -8,6 +9,7 @@ class UserEntity {
   UserEntity({
     required this.uid,
     required this.name,
+    required this.nickname,
     required this.email,
     required this.level,
     required this.department,
@@ -17,6 +19,7 @@ class UserEntity {
     return {
       'uid': uid,
       'name': name,
+      'nickname': nickname,
       'email': email,
       'level': level,
       'department': department,
@@ -28,6 +31,7 @@ class UserEntity {
     return UserEntity(
       uid: map['uid'],
       name: map['name'],
+      nickname: map['nickname'],
       email: map['email'],
       level: map['level'],
       department: map['department'],

@@ -14,7 +14,7 @@ class OtpRepository {
 
   String generateOtp() {
     final random = Random();
-    return (1000 + random.nextInt(9000)).toString();
+    return (100000 + random.nextInt(900000)).toString();
   }
 
   Future<void> storeOtp(String email, String otp) async {
@@ -37,7 +37,7 @@ class OtpRepository {
 
     final data = doc.data()!;
     final storedOtp = data['otp'] as String;
-    final createdAt = DateTime.parse(data['createdAt'] as String);
+    final createdAt = (data['createdAt'] as Timestamp).toDate();
 
     if (DateTime.now().difference(createdAt).inMinutes > 5) {
       await _firestore.collection('otp_verifications').doc(email).delete();
