@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import '../../auth/domain/otp_entity.dart';
 
 final otpRepositoryProvider = Provider<OtpRepository>((ref) {
@@ -10,7 +12,6 @@ final otpRepositoryProvider = Provider<OtpRepository>((ref) {
 
 class OtpRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
   String generateOtp() {
     final random = Random();
@@ -27,8 +28,23 @@ class OtpRepository {
   }
 
   Future<void> sendOtpEmail(String email, String otp) async {
-    final callable = _functions.httpsCallable('sendOtpEmail');
-    await callable.call({'email': email, 'otp': otp});
+    print("Sending OTP to $email with code $otp");
+
+    final response = await http.post(
+      Uri.parse('https://tfgvpremvcqdoqknnzei.functions.supabase.co/send-otp'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${dotenv.env['SUPABASE_ANON_KEY']}',
+      },
+      body: jsonEncode({'email': email, 'otp': otp}),
+    );
+
+    print("Supabase response status: ${response.statusCode}");
+    print("Supabase response body: ${response.body}");
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to send OTP email');
+    }
   }
 
   Future<bool> verifyOtp(String email, String enteredOtp) async {

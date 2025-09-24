@@ -7,6 +7,7 @@ import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:peer_net/base/routing/route_names.dart';
 import 'package:peer_net/base/widgets/input_field.dart';
 import 'package:peer_net/features/auth/application/auth_controller.dart';
+import 'package:peer_net/features/auth/application/auth_providers.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -15,11 +16,11 @@ class AuthScreen extends ConsumerStatefulWidget {
   ConsumerState<AuthScreen> createState() => _AuthScreenState();
 }
 
-
 class _AuthScreenState extends ConsumerState<AuthScreen> {
   bool isSignUp = true;
   bool showPassword = false;
   bool showConfirmPassword = false;
+  bool hasNavigated = false;
 
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
@@ -39,9 +40,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   ];
   String? selectedLevel;
 
-  final List<String> departments = [
-    'Software Engineering',
-  ];
+  final List<String> departments = ['Software Engineering'];
   String? selectedDepartment;
 
   void _submitForm() {
@@ -56,7 +55,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           department: selectedDepartment!,
         );
       } else {
-          ref.read(authControllerProvider.notifier).signIn(
+        ref.read(authControllerProvider.notifier).signIn(
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
         );
@@ -66,207 +65,210 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authControllerProvider);
-    bool hasNavigated = false;
-
-    if (authState.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    authState.whenOrNull(
-      data: (user) {
-        if (user != null && !hasNavigated) {
-          hasNavigated = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              context.go(RouteNames.otp);
-            }
-          });
+    ref.listen<AuthState>(authControllerProvider, (previous, next) {
+      if (previous?.flow != next.flow) {
+        if (next.flow == AuthFlow.otpSent) {
+          context.go(RouteNames.otp);
+        } else if (next.flow == AuthFlow.authenticated) {
+          context.go(RouteNames.home);
         }
-      },
-      error: (e, _) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      ),
-    );
+      }
+
+      next.user.whenOrNull(
+        error: (e, _) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString())),
+          );
+        },
+      );
+    });
+
+
+    final authState = ref.watch(authControllerProvider);
 
     return Scaffold(
       backgroundColor: AppStyles.borderText,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(left: 24, right: 24, top: 24, bottom: 48),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Image.asset(
-                  AppMedia.logo,
-                  scale: 5,
-                ),
-
-                SizedBox(height: 18),
-
-                Text(
-                  isSignUp ? "Sign Up" : "Sign In",
-                  textAlign: TextAlign.start,
-                  style: AppStyles.header1,
-                ),
-
-                SizedBox(height: isSignUp ? 20 : 0),
-
-                if (isSignUp) ...[
-                  InputField(
-                    controller: nameController,
-                    label: "Full Name",
-                    hint: "John Doe",
-                    errMsg: "Enter your full name",
-                  ),
-
-                  SizedBox(height: 20),
-
-                  InputField(
-                    controller: nicknameController,
-                    label: "Nickname",
-                    hint: "e.g Johnny",
-                    errMsg: "Enter your nickname",
-                  ),
-                ],
-
-                SizedBox(height: 20,),
-
-                InputField(
-                  controller: emailController,
-                  label: "Student Email or ID",
-                  hint: "user@futa.edu.ng",
-                  errMsg: "Please enter your email",
-                ),
-
-                SizedBox(height: 20),
-
-                InputField(
-                  controller: passwordController, 
-                  label: "Password", 
-                  hint: "Enter password", 
-                  errMsg: "Enter your passsword",
-                  obscureText: !showPassword,
-                  minLength: 6,
-                  suffixIcon: IconButton(
-                    onPressed: (){
-                      setState(() {
-                        showPassword = !showPassword;
-                      });
-                    }, 
-                    icon: Icon(
-                      showPassword ? Icons.visibility_off : Icons.visibility,
-                      color: AppStyles.hintColor,
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: 48,
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.asset(AppMedia.logo, scale: 5),
+                    const SizedBox(height: 18),
+                    Text(
+                      isSignUp ? "Sign Up" : "Sign In",
+                      textAlign: TextAlign.start,
+                      style: AppStyles.header1,
                     ),
-                  ),
-                ),
-
-                if (!isSignUp) ...[
-                  SizedBox(height: 8),
-
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        // Navigate to ForgotPasswordScreen
+                    if (isSignUp) ...[
+                      const SizedBox(height: 20),
+                      InputField(
+                        controller: nameController,
+                        label: "Full Name",
+                        hint: "John Doe",
+                        errMsg: "Enter your full name",
+                      ),
+                      const SizedBox(height: 20),
+                      InputField(
+                        controller: nicknameController,
+                        label: "Nickname",
+                        hint: "e.g Johnny",
+                        errMsg: "Enter your nickname",
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+                    InputField(
+                      controller: emailController,
+                      label: "Student Email or ID",
+                      hint: "user@futa.edu.ng",
+                      errMsg: "Please enter your email",
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Please enter your email";
+                        }
+                        if (!futaEmailRegex.hasMatch(value)) {
+                          return "Enter a valid futa.edu.ng email";
+                        }
+                        return null;
                       },
-                      child: Text('Forgot Password?'),
                     ),
-                  ),
-                ],
-
-                SizedBox(height: isSignUp ? 20 : 0),
-
-                if (isSignUp) ...[
-                  InputField(
-                    controller: confirmPasswordController, 
-                    label: "Confirm Password", 
-                    hint: "Confirm password", 
-                    errMsg: "Please confirm your password",
-                    obscureText: !showConfirmPassword,
-                    suffixIcon: IconButton(
-                      onPressed: () => setState(() {
-                        showConfirmPassword = !showConfirmPassword;
-                      }),
-                      icon: Icon(
-                        showConfirmPassword ? Icons.visibility_off : Icons.visibility,
-                        color: AppStyles.hintColor,
+                    const SizedBox(height: 20),
+                    InputField(
+                      controller: passwordController,
+                      label: "Password",
+                      hint: "Enter password",
+                      errMsg: "Enter your password",
+                      obscureText: !showPassword,
+                      minLength: 6,
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            showPassword = !showPassword;
+                          });
+                        },
+                        icon: Icon(
+                          showPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: AppStyles.hintColor,
+                        ),
                       ),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty){
-                        return 'Please confirm your password';
-                      }
-                      if (value != passwordController.text){
-                        return 'Passwords don\'t match';
-                      }
-                      return null;
-                    } ,
-                  ),
-
-                  SizedBox(height: 20),
-
-                  DropdownField(
-                    label: "Level",
-                    hint: "Select Level",
-                    items: levels,
-                    value: selectedLevel, 
-                    onChanged: (value) => setState(() => selectedLevel = value),
-                  ),
-
-                  SizedBox(height: 20),
-
-                  DropdownField(
-                    label: "Department",
-                    hint: "Select Department",
-                    items: departments,
-                    value: selectedDepartment, 
-                    onChanged: (value) => setState(() => selectedDepartment = value),
-                  ),
-                ],
-
-                SizedBox(height: 24),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _submitForm,
-                    style: AppStyles.buttonsStyle2,
-                    child: Text(
-                      isSignUp ? "Sign Up" : "Sign In",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: 16),
-
-                Center(
-                  child: RichText(
-                    text: TextSpan(
-                      style: AppStyles.subStyle2,
-                      children: [
-                        TextSpan(
-                          text: isSignUp
-                            ? "Already have an account? "
-                            : "Don't have an account? ",
+                    if (!isSignUp) ...[
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            // TODO: forgot password screen
+                          },
+                          child: const Text('Forgot Password?'),
                         ),
-                        TextSpan(
-                          text: isSignUp ? "Sign In" : "Sign Up",
-                          style: AppStyles.subLink,
-                          recognizer: TapGestureRecognizer()
-                          ..onTap = () => setState(() => isSignUp = !isSignUp),
+                      ),
+                    ],
+                    if (isSignUp) ...[
+                      const SizedBox(height: 20),
+                      InputField(
+                        controller: confirmPasswordController,
+                        label: "Confirm Password",
+                        hint: "Confirm password",
+                        errMsg: "Please confirm your password",
+                        obscureText: !showConfirmPassword,
+                        suffixIcon: IconButton(
+                          onPressed: () => setState(() {
+                            showConfirmPassword = !showConfirmPassword;
+                          }),
+                          icon: Icon(
+                            showConfirmPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: AppStyles.hintColor,
+                          ),
                         ),
-                      ],
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please confirm your password';
+                          }
+                          if (value != passwordController.text) {
+                            return 'Passwords don\'t match';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      DropdownField(
+                        label: "Level",
+                        hint: "Select Level",
+                        items: levels,
+                        value: selectedLevel,
+                        onChanged: (value) =>
+                            setState(() => selectedLevel = value),
+                      ),
+                      const SizedBox(height: 20),
+                      DropdownField(
+                        label: "Department",
+                        hint: "Select Department",
+                        items: departments,
+                        value: selectedDepartment,
+                        onChanged: (value) =>
+                            setState(() => selectedDepartment = value),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _submitForm,
+                        style: AppStyles.buttonsStyle2,
+                        child: Text(
+                          isSignUp ? "Sign Up" : "Sign In",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: RichText(
+                        text: TextSpan(
+                          style: AppStyles.subStyle2,
+                          children: [
+                            TextSpan(
+                              text: isSignUp
+                                  ? "Already have an account? "
+                                  : "Don't have an account? ",
+                            ),
+                            TextSpan(
+                              text: isSignUp ? "Sign In" : "Sign Up",
+                              style: AppStyles.subLink,
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () =>
+                                    setState(() => isSignUp = !isSignUp),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+          if (authState.user.isLoading)
+          Container(
+            color: Colors.black.withValues(alpha: 0.5),
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+        ],
       ),
     );
   }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
-import 'package:peer_net/features/auth/application/auth_controller.dart';
+import 'package:peer_net/base/routing/route_names.dart';
+import 'package:peer_net/features/auth/application/auth_providers.dart';
 
 class OtpVerificationScreen extends ConsumerStatefulWidget {
   final String email;
@@ -34,7 +36,10 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
 
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.symmetric(
+          horizontal: 20, 
+          vertical: 100
+        ),
         child: Column(
           children: [
             Text(
@@ -42,7 +47,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
               style: AppStyles.header1,
             ),
             
-            SizedBox(height: 20,),
+            SizedBox(height: 10,),
 
             Text("Enter the 6-digit code sent to your email"),
             TextField(
@@ -51,7 +56,9 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
               maxLength: 6,
               decoration: const InputDecoration(labelText: "OTP"),
             ),
-            const SizedBox(height: 20),
+
+            SizedBox(height: 20),
+
             ElevatedButton(
               onPressed: () {
                 ref.read(authControllerProvider.notifier).verifyOtpAndCreateAccount(
@@ -64,17 +71,52 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                   enteredOtp: otpController.text.trim(),
                 );
               },
-              child: const Text("Verify"),
+              style: AppStyles.buttonsStyle1.copyWith(
+                padding: WidgetStateProperty.all(
+                  const EdgeInsets.symmetric(
+                    horizontal: 50, 
+                    vertical: 12
+                  )
+                )
+              ),
+              child: Text(
+                "Verify OTP",
+                style: const TextStyle(color: Colors.white),
+              ),
             ),
-            if (authState.isLoading) 
-            const CircularProgressIndicator(),
-            ?authState.whenOrNull(
+
+            SizedBox(height: 5,),
+
+            TextButton(
+              onPressed: () {
+                ref.read(authControllerProvider.notifier).signUpWithOtp(
+                  email: widget.email,
+                  password: widget.password,
+                  name: widget.name,
+                  nickname: widget.nickname,
+                  level: widget.level,
+                  department: widget.department,
+                );
+              },
+              child: Text(
+                "Resend OTP",
+              ),
+            ),
+
+            if (authState.user.isLoading)
+            Container(
+              color: Colors.black.withValues(alpha: 0.5),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+            ?authState.user.whenOrNull(
               error: (e, _) => Text(e.toString(), style: const TextStyle(color: Colors.red)),
               data: (user) {
                 if (user != null) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (mounted) {
-                      Navigator.pushReplacementNamed(context, '/home');
+                      context.go(RouteNames.home);
                     }
                   });
                 }
