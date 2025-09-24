@@ -24,7 +24,7 @@ class AuthState {
   });
 
   factory AuthState.initial() =>
-      const AuthState(user: AsyncValue.data(null), flow: AuthFlow.idle);
+  const AuthState(user: AsyncValue.data(null), flow: AuthFlow.idle);
 }
 
 class AuthController extends StateNotifier<AuthState> {
@@ -32,7 +32,7 @@ class AuthController extends StateNotifier<AuthState> {
   final OtpRepository _otpRepository;
 
   AuthController(this._authRepository, this._otpRepository)
-      : super(AuthState.initial());
+    : super(AuthState.initial());
 
   /// Step 1 → send OTP email
   Future<void> signUpWithOtp({
@@ -62,6 +62,27 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
+  Future<void> resendOtp(String email) async {
+    state = const AuthState(
+      user: AsyncValue.loading(),
+      flow: AuthFlow.sendingOtp,
+    );
+
+    try {
+      final otp = _otpRepository.generateOtp();
+      await _otpRepository.storeOtp(email, otp);
+      await _otpRepository.sendOtpEmail(email, otp);
+
+      // ✅ Only update flow to otpSent, no user creation
+      state = const AuthState(
+        user: AsyncValue.data(null),
+        flow: AuthFlow.otpSent,
+      );
+    } catch (e, st) {
+      state = AuthState(user: AsyncValue.error(e, st), flow: AuthFlow.idle);
+    }
+  }
+
   /// Step 2 → verify OTP then create user account
   Future<void> verifyOtpAndCreateAccount({
     required String email,
@@ -72,24 +93,31 @@ class AuthController extends StateNotifier<AuthState> {
     required String department,
     required String enteredOtp,
   }) async {
-    state = const AuthState(
-      user: AsyncValue.loading(),
-      flow: AuthFlow.verifyingOtp,
-    );
+    state = const AuthState(user: AsyncValue.loading(), flow: AuthFlow.verifyingOtp);
     try {
       final isValid = await _otpRepository.verifyOtp(email, enteredOtp);
       if (!isValid) throw Exception("Invalid or expired OTP");
 
-      final user = await _authRepository.createUser(
-        email: email,
-        password: password,
-        name: name,
-        nickname: nickname,
-        level: level,
-        department: department,
-      );
+      User? user;
+      try {
+        // Try to create a new account
+        user = await _authRepository.createUser(
+          email: email,
+          password: password,
+          name: name,
+          nickname: nickname,
+          level: level,
+          department: department,
+        );
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'email-already-in-use') {
+          // If already exists, just sign in
+          user = await _authRepository.signIn(email: email, password: password);
+        } else {
+          rethrow;
+        }
+      }
 
-      // ✅ Success → authenticated
       state = AuthState(user: AsyncValue.data(user), flow: AuthFlow.authenticated);
     } catch (e, st) {
       state = AuthState(user: AsyncValue.error(e, st), flow: AuthFlow.idle);
@@ -115,10 +143,4 @@ class AuthController extends StateNotifier<AuthState> {
       state = AuthState(user: AsyncValue.error(e, st), flow: AuthFlow.idle);
     }
   }
-
-  // /// Optional → sign out
-  // Future<void> signOut() async {
-  //   await _authRepository.signOut();
-  //   state = AuthState.initial();
-  // }
 }

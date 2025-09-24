@@ -24,14 +24,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.otp,
-        builder: (context, state) => const OtpVerificationScreen(
-          email: '',
-          password: '',
-          name: '',
-          level: '',
-          department: '', 
-          nickname: '',
-        ),
+        builder: (context, state) {
+          final data = state.extra as Map<String, String>;
+
+          return OtpVerificationScreen(
+            email: data['email']!,
+            password: data['password']!,
+            name: data['name']!,
+            nickname: data['nickname']!,
+            level: data['level']!,
+            department: data['department']!,
+          );
+        },
       ),
       GoRoute(
         path: RouteNames.home,
@@ -45,6 +49,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       final onOnboardingScreen = state.matchedLocation == RouteNames.onboarding;
       final onAuthScreen = state.matchedLocation == RouteNames.auth;
+      final onOtpScreen = state.matchedLocation == RouteNames.otp;
 
       // First-time users → force onboarding
       if (!hasSeenOnboarding && !onOnboardingScreen) {
@@ -52,7 +57,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       }
 
       // Returning users not logged in → go to auth
-      if (hasSeenOnboarding && !loggedIn && !onAuthScreen) {
+      if (hasSeenOnboarding && !loggedIn && !onAuthScreen && !onOtpScreen) {
         return RouteNames.auth;
       }
 

@@ -68,7 +68,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     ref.listen<AuthState>(authControllerProvider, (previous, next) {
       if (previous?.flow != next.flow) {
         if (next.flow == AuthFlow.otpSent) {
-          context.go(RouteNames.otp);
+        context.go(
+          RouteNames.otp,
+          extra: {
+            'email': emailController.text.trim(),
+            'password': passwordController.text.trim(),
+            'name': nameController.text.trim(),
+            'nickname': nicknameController.text.trim(),
+            'level': selectedLevel!,
+            'department': selectedDepartment!,
+          },
+        );
         } else if (next.flow == AuthFlow.authenticated) {
           context.go(RouteNames.home);
         }

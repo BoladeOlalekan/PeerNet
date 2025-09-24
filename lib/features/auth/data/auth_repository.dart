@@ -28,6 +28,7 @@ class AuthRepository {
     );
 
     final user = userCredential.user;
+    
     if (user != null) {
       await user.updateDisplayName(name);
       await _firestore.collection('users').doc(user.uid).set({
