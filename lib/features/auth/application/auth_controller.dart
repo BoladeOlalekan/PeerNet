@@ -1,8 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:peer_net/features/auth/data/auth_repository.dart';
-import 'package:peer_net/features/auth/data/otp_repository.dart';
+import 'package:peer_net/features/AUTH/data/auth_repository.dart';
+import 'package:peer_net/features/AUTH/data/otp_repository.dart';
+import 'package:peer_net/features/auth/domain/user_entity.dart';
 
 /// Tracks which step of the auth flow the user is in
 enum AuthFlow {
@@ -15,7 +16,7 @@ enum AuthFlow {
 
 /// Wrapper for both user state and flow state
 class AuthState {
-  final AsyncValue<User?> user;
+  final AsyncValue<UserEntity?> user;
   final AuthFlow flow;
 
   const AuthState({
@@ -98,7 +99,7 @@ class AuthController extends StateNotifier<AuthState> {
       final isValid = await _otpRepository.verifyOtp(email, enteredOtp);
       if (!isValid) throw Exception("Invalid or expired OTP");
 
-      User? user;
+      UserEntity? user;
       try {
         // Try to create a new account
         user = await _authRepository.createUser(

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:peer_net/features/auth/domain/user_entity.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository();
@@ -14,7 +15,7 @@ class AuthRepository {
 
   bool get isLoggedIn => _auth.currentUser != null;
 
-  Future<User?> createUser({
+  Future<UserEntity?> createUser({
     required String email,
     required String password,
     required String name,
@@ -31,19 +32,27 @@ class AuthRepository {
     
     if (user != null) {
       await user.updateDisplayName(name);
-      await _firestore.collection('users').doc(user.uid).set({
-        'uid': user.uid,
-        'name': name,
-        'email': email,
-        'level': level,
-        'department': department,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+
+      final newUser = UserEntity(
+        uid: user.uid,
+        name: name,
+        nickname: nickname,
+        email: email,
+        level: level,
+        department: department,
+        createdAt: DateTime.now(),
+      );
+
+      await _firestore.collection('users').doc(user.uid).set(
+        newUser.toMap()
+      );
+
+      return newUser;
     }
-    return user;
+    return null;
   }
 
-  Future<User?> signIn({
+  Future<UserEntity?> signIn({
     required String email,
     required String password,
   }) async {
@@ -51,6 +60,28 @@ class AuthRepository {
       email: email,
       password: password,
     );
-    return userCredential.user;
+
+    final user = userCredential.user;
+
+    if (user == null) return null;
+
+    final doc = await _firestore.collection('users').doc(user.uid).get();
+    if (!doc.exists) return null;
+
+    return UserEntity.fromMap(doc.data()!);
+  }
+
+  Future<UserEntity?> fetchCurrentUser() async {
+    final user = _auth.currentUser;
+    if (user == null) return null;
+
+    final doc = await _firestore.collection('users').doc(user.uid).get();
+    if (!doc.exists) return null;
+
+    return UserEntity.fromMap(doc.data()!);
+  }
+
+  Future<void> signOut() async {
+    await _auth.signOut();
   }
 }

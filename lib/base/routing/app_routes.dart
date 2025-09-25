@@ -1,12 +1,18 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/routing/route_names.dart';
-import 'package:peer_net/features/auth/data/auth_repository.dart';
-import 'package:peer_net/features/auth/presentation/auth.dart';
-import 'package:peer_net/features/auth/presentation/otp_verification_screen.dart';
-import 'package:peer_net/features/home/home_screen.dart';
-import 'package:peer_net/features/onboarding/presentation/onboarding_screen.dart';
-import 'package:peer_net/main.dart'; // for sharedPrefsProvider
+import 'package:peer_net/features/PEERai/ai_screen.dart';
+import 'package:peer_net/features/AUTH/data/auth_repository.dart';
+import 'package:peer_net/features/AUTH/presentation/auth.dart';
+import 'package:peer_net/features/AUTH/presentation/otp_verification_screen.dart';
+import 'package:peer_net/features/CONNECT/connect_screen.dart';
+import 'package:peer_net/features/COURSES/courses_screen.dart';
+import 'package:peer_net/features/HOME/home_screen.dart';
+import 'package:peer_net/features/ONBOARDING/presentation/onboarding_screen.dart';
+import 'package:peer_net/features/PROFILE/profile_screen.dart';
+import 'package:peer_net/main.dart';
+import 'package:fluentui_icons/fluentui_icons.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
@@ -20,7 +26,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.auth,
-        builder: (context, state) => const AuthScreen(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final showSignUp = extra?['showSignUp'] as bool? ?? true;
+          return AuthScreen(showSignUp: showSignUp);
+        },
       ),
       GoRoute(
         path: RouteNames.otp,
@@ -37,11 +47,103 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-      GoRoute(
-        path: RouteNames.home,
-        builder: (context, state) => const HomeScreen(),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+            ),
+            child: Scaffold(
+              body: navigationShell,
+              bottomNavigationBar: BottomNavigationBar(
+                type: BottomNavigationBarType.fixed,
+                showSelectedLabels: false,
+                selectedItemColor: Color(0xFF1E3A8A),
+                unselectedItemColor: Color(0xFF1E3A8A).withValues(alpha: 0.7),
+                iconSize: 25,
+                currentIndex: navigationShell.currentIndex,
+                onTap: (index) {
+                  navigationShell.goBranch(index);
+                },
+            
+                items: const [
+                  BottomNavigationBarItem(
+                  icon: Icon(FluentSystemIcons.ic_fluent_home_regular),
+                  activeIcon: Icon(FluentSystemIcons.ic_fluent_home_filled),
+                  label: 'HOME',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(FluentSystemIcons.ic_fluent_people_regular),
+                    activeIcon: Icon(FluentSystemIcons.ic_fluent_people_filled),
+                    label: 'CONNECT',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(FluentSystemIcons.ic_fluent_book_formula_text_regular),
+                    activeIcon: Icon(FluentSystemIcons.ic_fluent_book_formula_text_filled),
+                    label: 'COURSES',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(FluentSystemIcons.ic_fluent_bot_regular),
+                    activeIcon: Icon(FluentSystemIcons.ic_fluent_bot_filled),
+                    label: 'PEERai',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(FluentSystemIcons.ic_fluent_person_regular),
+                    activeIcon: Icon(FluentSystemIcons.ic_fluent_person_filled),
+                    label: 'ME',
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.home,
+                builder: (context, state) => const HomeScreen(),
+              )
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.connect,
+                builder: (context, state) => const ConnectScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.courses,
+                builder: (context, state) => const CoursesScreen(),
+              )
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.ai,
+                builder: (context, state) => const AiScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteNames.me,
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
     ],
+
     redirect: (context, state) {
       final prefs = ref.read(sharedPrefsProvider);
       final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:peer_net/features/auth/data/auth_repository.dart';
-import 'package:peer_net/features/auth/data/otp_repository.dart';
+import 'package:peer_net/features/AUTH/data/auth_repository.dart';
+import 'package:peer_net/features/AUTH/data/otp_repository.dart';
 import 'auth_controller.dart';
 
 final authControllerProvider =

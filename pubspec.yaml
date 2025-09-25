@@ -12,6 +12,7 @@ dependencies:
   cloud_functions: ^5.6.0
   firebase_auth: ^5.7.0
   firebase_core: ^3.0.0
+  fluentui_icons: ^1.0.0
   flutter:
     sdk: flutter
   flutter_dotenv: ^6.0.0

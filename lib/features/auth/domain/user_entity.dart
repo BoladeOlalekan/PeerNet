@@ -5,6 +5,7 @@ class UserEntity {
   final String email;
   final String level;
   final String department;
+  final DateTime createdAt;
 
   UserEntity({
     required this.uid,
@@ -13,6 +14,7 @@ class UserEntity {
     required this.email,
     required this.level,
     required this.department,
+    required this.createdAt
   });
 
   Map<String, dynamic> toMap() {
@@ -34,7 +36,32 @@ class UserEntity {
       nickname: map['nickname'],
       email: map['email'],
       level: map['level'],
-      department: map['department'],
+      department: map['department'], 
+      createdAt: map['createdAt'] != null
+      ? DateTime.parse(map['createdAt'])
+      : DateTime.now(),
+    );
+  }
+
+  /// Copy with updated values
+  UserEntity copyWith({
+    String? uid,
+    String? name,
+    String? nickname,
+    String? email,
+    String? level,
+    String? department,
+    DateTime? createdAt,
+  }) {
+    return UserEntity(
+      uid: uid ?? this.uid,
+      name: name ?? this.name,
+      nickname: nickname ?? this.nickname,
+      email: email ?? this.email,
+      level: level ?? this.level,
+      department: department ?? this.department,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }
+

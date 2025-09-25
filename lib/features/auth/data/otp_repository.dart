@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import '../../auth/domain/otp_entity.dart';
+import '../domain/otp_entity.dart';
 
 final otpRepositoryProvider = Provider<OtpRepository>((ref) {
   return OtpRepository();

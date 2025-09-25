@@ -6,21 +6,31 @@ import 'package:peer_net/base/media.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:peer_net/base/routing/route_names.dart';
 import 'package:peer_net/base/widgets/input_field.dart';
-import 'package:peer_net/features/auth/application/auth_controller.dart';
-import 'package:peer_net/features/auth/application/auth_providers.dart';
+import 'package:peer_net/features/AUTH/application/auth_controller.dart';
+import 'package:peer_net/features/AUTH/application/auth_providers.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
-  const AuthScreen({super.key});
+  final bool showSignUp;
+  const AuthScreen({
+    this.showSignUp = true,
+    super.key
+  });
 
   @override
   ConsumerState<AuthScreen> createState() => _AuthScreenState();
 }
 
 class _AuthScreenState extends ConsumerState<AuthScreen> {
-  bool isSignUp = true;
+  late bool isSignUp;
   bool showPassword = false;
   bool showConfirmPassword = false;
   bool hasNavigated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    isSignUp = widget.showSignUp;
+  }
 
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
