@@ -83,4 +83,18 @@ class AppStyles {
     fontFamily: 'OpenSans',
     color: hintColor
   );
+
+  static TextStyle doubleText1 = TextStyle(
+    fontSize: 24,
+    fontFamily: 'OpenSans',
+    fontWeight: FontWeight.bold,
+    color: primary
+  );
+
+  static TextStyle doubleText2 = TextStyle(
+    fontSize: 16,
+    fontFamily: 'OpenSans',
+    fontWeight: FontWeight.w400,
+    color: accent
+  );
 }

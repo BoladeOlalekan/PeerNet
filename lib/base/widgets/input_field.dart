@@ -15,7 +15,7 @@ class InputField extends StatelessWidget {
   const InputField({
     super.key, 
     required this.controller, 
-    required this.label, 
+    required this.label,
     required this.hint, 
     required this.errMsg, 
     this.obscureText = false, 
@@ -39,6 +39,7 @@ class InputField extends StatelessWidget {
 
         TextFormField(
           controller: controller,
+          autofillHints: null,
           obscureText: obscureText,
           keyboardType: keyboardType,
           decoration: InputDecoration(

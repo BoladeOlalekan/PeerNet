@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:peer_net/base/media.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
+import 'package:peer_net/base/widgets/course/course_list.dart';
+import 'package:peer_net/base/widgets/route_double_text.dart';
 import 'package:peer_net/features/AUTH/application/auth_providers.dart';
+import 'package:peer_net/features/COURSES/application/course_provider.dart';
 //import 'package:peer_net/features/AUTH/data/auth_repository.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -13,7 +16,8 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authControllerProvider);
     final user = authState.user.value;
-
+    final randomCoursesAsync = ref.watch(randomCoursesProvider);
+    
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -47,7 +51,7 @@ class HomeScreen extends ConsumerWidget {
 
             SizedBox(height: 15),
 
-            // Department & Level
+            // Department & Level as well as greeting
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
@@ -57,10 +61,13 @@ class HomeScreen extends ConsumerWidget {
                     TextSpan(
                       style: AppStyles.header1,
                       children: [
-                        TextSpan(text: 'Hello, '),
                         TextSpan(
-                          text: user?.name ?? 'User',
-                          style: AppStyles.header1.copyWith(color: accent), // 👈 different color
+                          text: 'Hello, ',
+                          style: AppStyles.header1.copyWith(color: primary)
+                        ),
+                        TextSpan(
+                          text: user?.name.trim().split(' ').last ?? 'User',
+                          style: AppStyles.header1.copyWith(color: accent),
                         ),
                         const TextSpan(text: '👋'),
                       ],
@@ -71,26 +78,26 @@ class HomeScreen extends ConsumerWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppStyles.primaryColor.withValues(alpha: 0.1),
+                      color: AppStyles.accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text.rich(
                       TextSpan(
-                        style: Theme.of(context).textTheme.bodyLarge, // base style
+                        style: Theme.of(context).textTheme.bodyLarge,
                         children: [
                           TextSpan(
                             text: 'Department: ',
-                            style: const TextStyle(fontWeight: FontWeight.bold), // label bold
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           TextSpan(
-                            text: '${user?.department ?? 'Unknown'}\n', // value normal
+                            text: '${user?.department ?? 'Unknown'}\n',
                           ),
                           TextSpan(
                             text: 'Level: ',
-                            style: const TextStyle(fontWeight: FontWeight.bold), // label bold
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           TextSpan(
-                            text: '${user?.level ?? 'N/A'}',
+                            text: user?.level ?? 'N/A',
                           ),
                         ],
                       ),
@@ -102,68 +109,53 @@ class HomeScreen extends ConsumerWidget {
 
             const SizedBox(height: 20),
 
-            // My Courses Section
+            // Next Section
             Expanded(
               child: Container(
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF5F5F5),
+                decoration: BoxDecoration(
+                  color: AppStyles.accentColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(24),
                     topRight: Radius.circular(24),
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('My Courses', style: Theme.of(context).textTheme.titleMedium),
-                          TextButton(onPressed: () {}, child: const Text('View All')),
-                        ],
+                      // COURSES SECTION
+                      RouteDoubleText(
+                        bigText: 'My Courses',
+                        smallText: 'View All',
+                        func: () {},
                       ),
 
-                      // Horizontal Scroll Courses
-                      SizedBox(
-                        height: 140,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: 5,
-                          itemBuilder: (context, index) => Container(
-                            width: 120,
-                            margin: const EdgeInsets.only(right: 12),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.2),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Icon(Icons.book, size: 32),
-                                const SizedBox(height: 8),
-                                Text('Course ${index + 1}', style: Theme.of(context).textTheme.bodyMedium),
-                              ],
-                            ),
-                          ),
-                        ),
+                      const SizedBox(height: 12),
+
+                      randomCoursesAsync.when(
+                        data: (courses) {
+                          print('Fetched courses: ${courses.map((c) => c.courseName).toList()}');
+                          return CourseList(
+                            courses: courses,
+                            onCourseTap: (courseTitle) {
+                              // TODO: Implement course tap functionality
+                              print('Tapped on course: $courseTitle');
+                            },
+                          );
+                        },
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (err, st) => Text('Error: $err'),
                       ),
 
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
 
                       // Connect Section
-                      Text('Connect', style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 12),
+                      Text(
+                        'Connect', 
+                        style: AppStyles.doubleText1
+                      ),
+                      SizedBox(height: 12),
                       SizedBox(
                         height: 100,
                         child: ListView.builder(

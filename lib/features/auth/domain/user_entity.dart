@@ -1,5 +1,7 @@
+import 'dart:convert';
+
 class UserEntity {
-  final String uid;
+  final String firebaseUid;
   final String name;
   final String nickname;
   final String email;
@@ -8,44 +10,48 @@ class UserEntity {
   final DateTime createdAt;
 
   UserEntity({
-    required this.uid,
+    required this.firebaseUid,
     required this.name,
     required this.nickname,
     required this.email,
     required this.level,
     required this.department,
-    required this.createdAt
+    required this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'uid': uid,
+      'firebase_uid': firebaseUid,
       'name': name,
       'nickname': nickname,
       'email': email,
       'level': level,
       'department': department,
-      'createdAt': DateTime.now().toIso8601String(),
+      'createdAt': createdAt.toIso8601String(),
     };
   }
 
   factory UserEntity.fromMap(Map<String, dynamic> map) {
     return UserEntity(
-      uid: map['uid'],
+      firebaseUid: map['firebase_uid'],
       name: map['name'],
       nickname: map['nickname'],
       email: map['email'],
       level: map['level'],
       department: map['department'], 
       createdAt: map['createdAt'] != null
-      ? DateTime.parse(map['createdAt'])
-      : DateTime.now(),
+      ? DateTime.tryParse(map['createdAt']) ?? 
+      DateTime.now() : DateTime.now(),
     );
   }
 
+  String toJson() => json.encode(toMap());
+  factory UserEntity.fromJson(String source) =>
+  UserEntity.fromMap(json.decode(source));
+
   /// Copy with updated values
   UserEntity copyWith({
-    String? uid,
+    String? firebaseUid,
     String? name,
     String? nickname,
     String? email,
@@ -54,7 +60,7 @@ class UserEntity {
     DateTime? createdAt,
   }) {
     return UserEntity(
-      uid: uid ?? this.uid,
+      firebaseUid: firebaseUid ?? this.firebaseUid,
       name: name ?? this.name,
       nickname: nickname ?? this.nickname,
       email: email ?? this.email,
