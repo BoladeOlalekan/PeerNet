@@ -138,9 +138,8 @@ class HomeScreen extends ConsumerWidget {
                           print('Fetched courses: ${courses.map((c) => c.courseName).toList()}');
                           return CourseList(
                             courses: courses,
-                            onCourseTap: (courseTitle) {
-                              // TODO: Implement course tap functionality
-                              print('Tapped on course: $courseTitle');
+                            onCourseTap: (course) {
+                              print('Tapped on course: ${course.courseName} (${course.courseCode})');
                             },
                           );
                         },
@@ -155,7 +154,9 @@ class HomeScreen extends ConsumerWidget {
                         'Connect', 
                         style: AppStyles.doubleText1
                       ),
+
                       SizedBox(height: 12),
+                      
                       SizedBox(
                         height: 100,
                         child: ListView.builder(

@@ -7,16 +7,21 @@ Future<List<CourseModel>> fetchCourses({
   required String semester,
 }) async {
   try {
+    print("DEBUG: fetching courses dept=$department, level=$level, semester=$semester");
+
     final response = await Supabase.instance.client
         .from('courses')
         .select()
-        .eq('department', department)
+        .ilike('department', department)
         .eq('level', level)
         .eq('semester', semester);
 
+    print("DEBUG: Supabase response = $response");
+
     final data = response as List;
     return data.map((json) => CourseModel.fromJson(json)).toList();
-  } catch (e) {
+  } catch (e, st) {
+    print("ERROR: $e\n$st");
     throw Exception('Failed to fetch courses: $e');
   }
 }

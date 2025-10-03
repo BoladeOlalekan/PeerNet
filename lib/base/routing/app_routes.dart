@@ -7,7 +7,7 @@ import 'package:peer_net/features/AUTH/data/auth_repository.dart';
 import 'package:peer_net/features/AUTH/presentation/auth.dart';
 import 'package:peer_net/features/AUTH/presentation/otp_verification_screen.dart';
 import 'package:peer_net/features/CONNECT/connect_screen.dart';
-import 'package:peer_net/features/COURSES/courses_screen.dart';
+import 'package:peer_net/features/COURSES/presentation/courses_screen.dart';
 import 'package:peer_net/features/HOME/home_screen.dart';
 import 'package:peer_net/features/ONBOARDING/presentation/onboarding_screen.dart';
 import 'package:peer_net/features/PROFILE/profile_screen.dart';
@@ -120,7 +120,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: RouteNames.courses,
-                builder: (context, state) => const CoursesScreen(),
+                builder: (context, state) => const CoursesScreen(
+                  department: 'Software Engineering',
+                  level: 500,
+                ),
               )
             ],
           ),
