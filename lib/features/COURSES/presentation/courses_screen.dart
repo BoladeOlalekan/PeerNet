@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
+import 'package:peer_net/base/widgets/course/course_card.dart';
 import 'package:peer_net/features/COURSES/application/course_provider.dart';
-import 'package:peer_net/features/COURSES/models/course_model.dart';
+import 'package:peer_net/features/COURSES/presentation/course_details_screen.dart';
 
 class CoursesScreen extends ConsumerStatefulWidget {
   final String department;
@@ -39,7 +40,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
   void _changeLevel(int newLevel) {
     setState(() {
       selectedLevel = newLevel;
-      _tabController.index = 0; // ✅ reset to "First Semester"
+      _tabController.index = 0;
     });
   }
 
@@ -76,7 +77,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
               ],
             ),
 
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
 
             // Level + Department Label
             Text(
@@ -84,11 +85,10 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
               style: AppStyles.doubleText1,
             ),
 
-            //const SizedBox(height: 5),
+            SizedBox(height: 5),
 
             // Tab Contents
             Expanded(
-              flex: 8,
               child: TabBarView(
                 controller: _tabController,
                 children: [
@@ -106,7 +106,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
               ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
 
             // Other Levels Section
             Text(
@@ -122,19 +122,30 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
                   final isSelected = selectedLevel == lvl;
                   return GestureDetector(
                     onTap: () => _changeLevel(lvl),
-                    child: Card(
+                    child: Container(
                       margin: const EdgeInsets.only(right: 8),
-                      color: isSelected
-                          ? const Color(0xFF1E3A8A)
-                          : const Color(0xFF10B981).withValues(alpha: 0.1),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Center(
-                          child: Text(
-                            "$lvl Level",
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.black,
-                            ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16, 
+                        vertical: 10
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                          ? AppStyles.primaryColor.withValues(alpha: .9)
+                          : AppStyles.accentColor.withValues(alpha: .1),
+                          borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black87.withValues(alpha: 0.05),
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          "$lvl Level",
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black87,
                           ),
                         ),
                       ),
@@ -164,53 +175,46 @@ class _CourseListBuilder extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncCourses =
-        ref.watch(coursesProvider(CourseParams(department, level, semester)));
+    final asyncCourses = ref.watch(coursesProvider(CourseParams(department, level, semester)));
 
     return asyncCourses.when(
       data: (courses) {
         if (courses.isEmpty) {
           return const Center(
-              child: Text("No courses found for this level/semester."));
+            child: Text("No courses found for this level/semester.")
+          );
         }
-        return ListView.builder(
+        return GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 10.0,
+            mainAxisSpacing: 15.0,
+            childAspectRatio: 0.9,
+          ),
           itemCount: courses.length,
+          padding: EdgeInsets.all(10.0),
+
           itemBuilder: (context, index) {
             final course = courses[index];
-            return ListTile(
-              title: Text("${course.courseCode} - ${course.courseName}"),
-              subtitle: Text("$semester Semester"),
+
+            return CourseCard(
               onTap: () {
-                // Example navigation to details screen
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => CourseDetailsScreen(course: course),
                   ),
                 );
-              },
+              }, 
+              courseCode: course.courseCode, 
+              courseName: course.courseName,
             );
           },
         );
+
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, st) => Center(child: Text("Error: $e")),
-    );
-  }
-}
-
-// Example details screen
-class CourseDetailsScreen extends StatelessWidget {
-  final CourseModel course;
-  const CourseDetailsScreen({super.key, required this.course});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("${course.courseCode} - ${course.courseName}"),
-      ),
-      body: const Center(child: Text("Notes | Videos | Past Questions here")),
     );
   }
 }

@@ -48,3 +48,25 @@ Future<List<CourseModel>> fetchRandomCourses({
     throw Exception('Failed to fetch random courses: $e');
   }
 }
+
+Future<List<CourseModel>> fetchCourseResources({
+  required String courseId,
+}) async {
+  try {
+    print("DEBUG: fetching resources for courseId=$courseId");
+
+    final response = await Supabase.instance.client
+      .from('resources')
+      .select('id, storage_path, file_type, approval_status, created_at')
+      .eq('course_id', courseId)
+      .eq('approval_status', 'approved')
+      .order('created_at', ascending: false);
+
+    final data = response as List;
+    print("DEBUG: fetched ${data.length} resources");
+    
+    return data.map((json) => CourseModel.fromJson(json)).toList();
+  } catch (e) {
+    throw Exception('Failed to fetch course resources: $e');
+  }
+}

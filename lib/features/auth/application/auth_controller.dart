@@ -130,20 +130,31 @@ class AuthController extends StateNotifier<AuthState> {
   }) async {
     final supabase = Supabase.instance.client;
 
+    print("🚀 Syncing user to Supabase...");
+    print("   UID: $firebaseUid");
+    print("   Email: $email");
+    print("   Dept: $department | Level: $level");
+
     try {
-      await supabase.from('users').upsert({
+      final response = await supabase.from('users').upsert({
         'firebase_uid': firebaseUid,
+        'full_name': name,
         'email': email,
-        'name': name,
         'nickname': nickname,
-        'level': int.parse(level),
+        'level': int.tryParse(level.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0,
         'department': department,
+        'is_admin': false,
+        'created_at': DateTime.now().toIso8601String(),
         'updated_at': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      throw Exception('Failed to sync user to Supabase: $e');
+      }).select();
+
+      print("✅ Supabase response: $response");
+    } catch (e, st) {
+      print("❌ Supabase sync error: $e");
+      print(st);
     }
   }
+
 
   /// Step 2 → verify OTP then create user account
   Future<void> verifyOtpAndCreateAccount({
@@ -215,6 +226,19 @@ class AuthController extends StateNotifier<AuthState> {
         email: email,
         password: password,
       );
+
+      if (user != null) {
+        // 🔁 Ensure user exists in Supabase mirror
+        await _syncUserToSupabase(
+          firebaseUid: user.firebaseUid,
+          email: user.email,
+          name: user.name,
+          nickname: user.nickname,
+          level: user.level.toString(),
+          department: user.department,
+        );
+      }
+      
       state = AuthState(user: AsyncValue.data(user), flow: AuthFlow.authenticated);
     } catch (e, st) {
       state = AuthState(user: AsyncValue.error(e, st), flow: AuthFlow.idle);

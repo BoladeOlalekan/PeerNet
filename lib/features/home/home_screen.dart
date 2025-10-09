@@ -7,6 +7,7 @@ import 'package:peer_net/base/widgets/course/course_list.dart';
 import 'package:peer_net/base/widgets/route_double_text.dart';
 import 'package:peer_net/features/AUTH/application/auth_providers.dart';
 import 'package:peer_net/features/COURSES/application/course_provider.dart';
+import 'package:peer_net/features/COURSES/presentation/course_details_screen.dart';
 //import 'package:peer_net/features/AUTH/data/auth_repository.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -139,6 +140,7 @@ class HomeScreen extends ConsumerWidget {
                           return CourseList(
                             courses: courses,
                             onCourseTap: (course) {
+                              CourseDetailsScreen(course: course);
                               print('Tapped on course: ${course.courseName} (${course.courseCode})');
                             },
                           );
