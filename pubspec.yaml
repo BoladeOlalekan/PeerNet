@@ -24,6 +24,7 @@ dependencies:
   path: ^1.9.1
   shared_preferences: ^2.4.3
   supabase_flutter: ^2.10.2
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   custom_lint: ^0.8.0
