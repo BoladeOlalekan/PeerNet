@@ -8,12 +8,14 @@ class ResourceCard extends StatefulWidget {
   final String fileName;
   final String fileType;
   final String downloadUrl;
+  final String youtubeUrl;
 
   const ResourceCard({
     super.key,
     required this.fileName,
     required this.fileType,
     required this.downloadUrl,
+    required this.youtubeUrl,
   });
 
   @override
@@ -80,6 +82,21 @@ class _ResourceCardState extends State<ResourceCard> {
     return ['png', 'jpg', 'jpeg', 'gif', 'webp'].contains(ext);
   }
 
+  String? _getYoutubeThumbnail(String? url) {
+    if (url == null || url.isEmpty) return null;
+    final regExp = RegExp(
+      r'(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})',
+      caseSensitive: false,
+    );
+    final match = regExp.firstMatch(url);
+    if (match != null && match.groupCount >= 1) {
+      final videoId = match.group(1);
+      return "https://img.youtube.com/vi/$videoId/hqdefault.jpg";
+    }
+    return null;
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -98,6 +115,35 @@ class _ResourceCardState extends State<ResourceCard> {
                 builder: (context, snap) {
                   final meta = snap.data;
                   final mime = meta?['content-type'];
+
+                  // ✅ Handle YouTube thumbnails
+                  if (widget.youtubeUrl.isNotEmpty) {
+                    final thumbnail = _getYoutubeThumbnail(widget.youtubeUrl);
+                    print('DEBUG: youtubeUrl=${widget.youtubeUrl}, thumbnail=$thumbnail');
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (thumbnail != null)
+                          Image.network(thumbnail, fit: BoxFit.cover)
+                        else
+                          Container(color: Colors.black12),
+                        Center(
+                          child: IconButton(
+                            icon: const Icon(
+                              FluentSystemIcons.ic_fluent_play_circle_filled,
+                              color: Colors.white,
+                              size: 64,
+                            ),
+                            onPressed: () async {
+                              final uri = Uri.parse(widget.youtubeUrl);
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
                   if (_isImage(mime)) {
                     if (widget.downloadUrl.isEmpty) {
                       return Container(

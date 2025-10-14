@@ -55,7 +55,7 @@ Future<List<Map<String, dynamic>>> fetchCourseResources(String courseId) async {
 
     final response = await Supabase.instance.client
         .from('resources')
-        .select('id, storage_path, file_type, created_at, approval_status')
+        .select('id, storage_path, file_type, created_at, approval_status, file_name, youtube_url')
         .eq('course_id', courseId)
         .eq('approval_status', 'approved')
         .order('created_at', ascending: false);
@@ -68,7 +68,10 @@ Future<List<Map<String, dynamic>>> fetchCourseResources(String courseId) async {
       final path = map['storage_path'] as String?;
       final fileType = map['file_type'] as String? ?? 'note';
 
-      final fileName = path?.split('/').last ?? 'Untitled';
+      final fileName = (map['file_name'] as String?)?.trim().isNotEmpty == true
+          ? map['file_name'] as String
+          : (path?.split('/').last ?? 'Untitled');
+
       final downloadUrl = path != null
           ? Supabase.instance.client.storage.from('resources').getPublicUrl(path)
           : '';
@@ -78,7 +81,9 @@ Future<List<Map<String, dynamic>>> fetchCourseResources(String courseId) async {
         'file_name': fileName,
         'file_type': fileType,
         'download_url': downloadUrl,
+        'youtube_url': map['youtube_url'] ?? '',
       };
+
     }).toList();
   } catch (e, st) {
     print("ERROR fetching course resources: $e\n$st");

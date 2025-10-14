@@ -119,6 +119,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
         }
 
         final allResources = snapshot.data ?? [];
+        print('DEBUG resources = $allResources');
         final filtered = allResources
           .where((r) => r['file_type'] == tabType)
           .toList();
@@ -144,9 +145,10 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
           itemBuilder: (context, idx) {
             final resource = filtered[idx];
             return ResourceCard(
-              fileName: resource['file_name'] ?? 'Untitled',
+              fileName: resource['file_name'] ?? resource['fileName'] ?? 'Untitled',
               fileType: resource['file_type'] ?? 'note',
-              downloadUrl: resource['download_url'] ?? '',
+              downloadUrl: resource['download_url'] ?? '', 
+              youtubeUrl: resource['youtube_url'] ?? '',
             );
           },
         );
