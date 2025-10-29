@@ -67,7 +67,7 @@ class HomeScreen extends ConsumerWidget {
                           style: AppStyles.header1.copyWith(color: primary)
                         ),
                         TextSpan(
-                          text: user?.name.trim().split(' ').last ?? 'User',
+                          text: user?.nickname.trim().split(' ').last ?? 'User',
                           style: AppStyles.header1.copyWith(color: accent),
                         ),
                         const TextSpan(text: '👋'),

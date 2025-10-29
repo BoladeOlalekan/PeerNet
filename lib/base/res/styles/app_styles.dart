@@ -97,4 +97,28 @@ class AppStyles {
     fontWeight: FontWeight.w400,
     color: accent
   );
+
+  static TextStyle profileName = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    color: subText
+  );
+
+  static TextStyle profileMail = TextStyle(
+    fontSize: 14,
+    color: labelText
+  );
+
+  static TextStyle editText = TextStyle(
+    fontSize: 14,
+    color: borderText
+  );
+
+  static ButtonStyle editProfileButton = TextButton.styleFrom(
+    backgroundColor: accentColor,
+    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(20),
+    ),
+  );
 }

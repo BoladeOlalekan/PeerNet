@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:peer_net/features/AUTH/data/auth_repository.dart';
+import 'package:peer_net/features/AUTH/data/cloudinary_repository.dart';
 import 'package:peer_net/features/AUTH/data/otp_repository.dart';
 import 'package:peer_net/features/AUTH/domain/user_entity.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -41,7 +43,7 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   Future<void> _init() async {
-    // Load cached user instantly
+    // 1️⃣ Load cached user instantly
     final cachedUser = await _authRepository.loadCachedUser();
     if (cachedUser != null) {
       state = AuthState(
@@ -50,7 +52,7 @@ class AuthController extends StateNotifier<AuthState> {
       );
     }
 
-    // 2. Listen to FirebaseAuth state and hydrate
+    // 2️⃣ Listen to FirebaseAuth state and hydrate
     _auth.authStateChanges().listen((firebaseUser) async {
       if (firebaseUser == null) {
         state = const AuthState(user: AsyncValue.data(null), flow: AuthFlow.idle);
@@ -155,7 +157,6 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
-
   /// Step 2 → verify OTP then create user account
   Future<void> verifyOtpAndCreateAccount({
     required String email,
@@ -194,16 +195,14 @@ class AuthController extends StateNotifier<AuthState> {
         }
       }
 
-      if (user != null) {
-        await _syncUserToSupabase(
-          firebaseUid: user.firebaseUid,
-          email: user.email,
-          name: name,
-          nickname: nickname,
-          level: level,
-          department: department,
-        );
-      }
+      await _syncUserToSupabase(
+        firebaseUid: user!.firebaseUid,
+        email: user.email,
+        name: name,
+        nickname: nickname,
+        level: level,
+        department: department,
+      );
 
       state =
           AuthState(user: AsyncValue.data(user), flow: AuthFlow.authenticated);
@@ -238,10 +237,51 @@ class AuthController extends StateNotifier<AuthState> {
           department: user.department,
         );
       }
-      
+
       state = AuthState(user: AsyncValue.data(user), flow: AuthFlow.authenticated);
     } catch (e, st) {
       state = AuthState(user: AsyncValue.error(e, st), flow: AuthFlow.idle);
+    }
+  }
+
+  Future<void> refreshUser() async {
+    final userEntity = await _authRepository.fetchCurrentUser();
+    if (userEntity != null) {
+      state = AuthState(user: AsyncValue.data(userEntity), flow: AuthFlow.authenticated);
+    }
+  }
+
+  /// ✅ Updated to use `cacheUser()` (no underscore)
+  Future<void> updateUserProfileImage(File imageFile) async {
+    try {
+      final user = state.user.value;
+      if (user == null) throw Exception("No user is currently signed in.");
+
+      // 1️⃣ Upload to Cloudinary
+      final cloudinaryRepo = CloudinaryRepository();
+      final imageUrl = await cloudinaryRepo.uploadUserImage(imageFile);
+
+      // 2️⃣ Update Supabase
+      final supabase = Supabase.instance.client;
+      await supabase
+          .from('users')
+          .update({
+            'image_url': imageUrl,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('firebase_uid', user.firebaseUid);
+
+      // 3️⃣ Update Firebase cache + Firestore
+      final updatedUser = user.copyWith(avatarUrl: imageUrl);
+      await _authRepository.cacheUser(updatedUser);
+
+      // 4️⃣ Update local state
+      state = AuthState(
+        user: AsyncValue.data(updatedUser),
+        flow: AuthFlow.authenticated,
+      );
+    } catch (e, st) {
+      state = AuthState(user: AsyncValue.error(e, st), flow: AuthFlow.authenticated);
     }
   }
 

@@ -8,6 +8,7 @@ class UserEntity {
   final String level;
   final String department;
   final DateTime createdAt;
+  final String? avatarUrl;
 
   UserEntity({
     required this.firebaseUid,
@@ -17,6 +18,7 @@ class UserEntity {
     required this.level,
     required this.department,
     required this.createdAt,
+    this.avatarUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -27,6 +29,7 @@ class UserEntity {
       'email': email,
       'level': level,
       'department': department,
+      'avatarUrl': avatarUrl,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -39,6 +42,7 @@ class UserEntity {
       email: map['email'],
       level: map['level'],
       department: map['department'], 
+      avatarUrl: map['avatarUrl'],
       createdAt: map['createdAt'] != null
       ? DateTime.tryParse(map['createdAt']) ?? 
       DateTime.now() : DateTime.now(),
@@ -58,6 +62,7 @@ class UserEntity {
     String? level,
     String? department,
     DateTime? createdAt,
+    String? avatarUrl,
   }) {
     return UserEntity(
       firebaseUid: firebaseUid ?? this.firebaseUid,
@@ -67,6 +72,7 @@ class UserEntity {
       level: level ?? this.level,
       department: department ?? this.department,
       createdAt: createdAt ?? this.createdAt,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
     );
   }
 }

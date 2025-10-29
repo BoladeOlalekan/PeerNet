@@ -1,48 +1,141 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:peer_net/features/AUTH/domain/user_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepository();
+  return AuthRepository(
+    firebaseAuth: FirebaseAuth.instance,
+    firestore: FirebaseFirestore.instance,
+    supabase: Supabase.instance.client,
+  );
 });
 
 class AuthRepository {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth firebaseAuth;
+  final FirebaseFirestore firestore;
+  final SupabaseClient supabase;
 
-  User? get currentUser => _auth.currentUser;
+  AuthRepository({
+    required this.firebaseAuth,
+    required this.firestore,
+    required this.supabase,
+  });
 
-  bool get isLoggedIn => _auth.currentUser != null;
+  bool get isLoggedIn => firebaseAuth.currentUser != null;
 
-  /// 🔹 Save user locally
-  Future<void> _cacheUser(UserEntity user) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('cached_user', jsonEncode(user.toMap()));
+  // === CLOUDINARY CONFIG ===
+  static const _cloudName = 'dewaejnbk';
+  static const _uploadPreset = 'PeerNet';
+
+  // 🧠 AUTH HELPERS
+  User? get currentUser => firebaseAuth.currentUser;
+
+  Future<UserEntity?> getCurrentUserProfile() async {
+    final user = firebaseAuth.currentUser;
+    if (user == null) return null;
+
+    final doc = await firestore.collection('users').doc(user.uid).get();
+    if (!doc.exists) return null;
+
+    final data = doc.data()!;
+    final userEntity = UserEntity.fromMap(data);
+    await cacheUser(userEntity);
+    return userEntity;
   }
 
-  /// 🔹 Load cached user (or null if none)
+  // ✅ PUBLIC cache methods (renamed for controller consistency)
+  Future<void> cacheUser(UserEntity user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user', jsonEncode(user.toMap()));
+  }
+
   Future<UserEntity?> loadCachedUser() async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonStr = prefs.getString('cached_user');
-    if (jsonStr == null) return null;
+    final cached = prefs.getString('user');
+    if (cached == null) return null;
+    return UserEntity.fromMap(jsonDecode(cached));
+  }
 
+  // ☁️ PROFILE UPDATE HANDLER (WITH CLOUDINARY)
+  Future<UserEntity?> updateUserProfile({
+    required String uid,
+    String? nickname,
+    File? avatarFile,
+  }) async {
     try {
-      final map = jsonDecode(jsonStr);
-      return UserEntity.fromMap(Map<String, dynamic>.from(map));
-    } catch (_) {
+      String? newAvatarUrl;
+
+      // === STEP 1: UPLOAD TO CLOUDINARY (if avatar selected) ===
+      if (avatarFile != null) {
+        final uri = Uri.parse(
+          'https://api.cloudinary.com/v1_1/$_cloudName/image/upload',
+        );
+
+        final uploadRequest = http.MultipartRequest('POST', uri)
+          ..fields['upload_preset'] = _uploadPreset
+          ..files.add(await http.MultipartFile.fromPath('file', avatarFile.path));
+
+        final uploadResponse = await uploadRequest.send();
+        final uploadResult = await http.Response.fromStream(uploadResponse);
+
+        if (uploadResponse.statusCode == 200) {
+          final responseData = jsonDecode(uploadResult.body);
+          newAvatarUrl = responseData['secure_url'];
+        } else {
+          throw Exception('Cloudinary upload failed: ${uploadResult.body}');
+        }
+      }
+
+      // === STEP 2: UPDATE FIRESTORE ===
+      final userRef = firestore.collection('users').doc(uid);
+      final updateData = <String, dynamic>{};
+      if (nickname != null) updateData['nickname'] = nickname;
+      if (newAvatarUrl != null) updateData['avatarUrl'] = newAvatarUrl;
+
+      if (updateData.isNotEmpty) {
+        await userRef.update(updateData);
+      }
+
+      // === STEP 3: UPDATE FIREBASE AUTH PROFILE ===
+      final user = firebaseAuth.currentUser;
+      if (user != null) {
+        await user.updateDisplayName(nickname ?? user.displayName);
+        if (newAvatarUrl != null) {
+          await user.updatePhotoURL(newAvatarUrl);
+        }
+      }
+
+      // === STEP 4: UPDATE SUPABASE TABLE (mirror) ===
+      try {
+        await supabase.from('users').update({
+          if (nickname != null) 'nickname': nickname,
+          if (newAvatarUrl != null) 'avatar_url': newAvatarUrl,
+        }).eq('firebase_uid', uid);
+      } catch (e) {
+        print('Supabase update failed: $e');
+      }
+
+      // === STEP 5: GET LATEST USER DATA & CACHE ===
+      final updatedDoc = await userRef.get();
+      final updatedUser = UserEntity.fromMap(updatedDoc.data()!);
+      await cacheUser(updatedUser);
+
+      return updatedUser;
+    } catch (e) {
+      print('Error updating user profile: $e');
       return null;
     }
   }
 
-  /// 🔹 Clear cache (on logout)
-  Future<void> clearCache() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('cached_user');
-  }
+  // 🔐 AUTHENTICATION METHODS
 
+  // --- 1️⃣ Email + Password Sign Up ---
   Future<UserEntity?> createUser({
     required String email,
     required String password,
@@ -51,18 +144,16 @@ class AuthRepository {
     required String level,
     required String department,
   }) async {
-    final userCredential = await _auth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      final credential = await firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-    final user = userCredential.user;
+      final uid = credential.user!.uid;
 
-    if (user != null) {
-      await user.updateDisplayName(name);
-
-      final newUser = UserEntity(
-        firebaseUid: user.uid,
+      final userEntity = UserEntity(
+        firebaseUid: uid,
         name: name,
         nickname: nickname,
         email: email,
@@ -71,56 +162,51 @@ class AuthRepository {
         createdAt: DateTime.now(),
       );
 
-      await _firestore.collection('users').doc(user.uid).set(newUser.toMap());
+      await firestore.collection('users').doc(uid).set(userEntity.toMap());
+      await cacheUser(userEntity);
 
-      // ✅ cache after creation
-      await _cacheUser(newUser);
-
-      return newUser;
+      return userEntity;
+    } catch (e) {
+      print('⚠️ Error creating user: $e');
+      return null;
     }
-    return null;
   }
 
+  // --- 2️⃣ Email + Password Sign In ---
   Future<UserEntity?> signIn({
     required String email,
     required String password,
   }) async {
-    final userCredential = await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      await firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-    final user = userCredential.user;
-    if (user == null) return null;
-
-    final doc = await _firestore.collection('users').doc(user.uid).get();
-    if (!doc.exists) return null;
-
-    final userEntity = UserEntity.fromMap(doc.data()!);
-
-    // ✅ cache after sign in
-    await _cacheUser(userEntity);
-
-    return userEntity;
+      return await fetchCurrentUser();
+    } catch (e) {
+      print('⚠️ Error signing in: $e');
+      return null;
+    }
   }
 
+  // --- 3️⃣ Fetch currently signed-in user's full profile ---
   Future<UserEntity?> fetchCurrentUser() async {
-    final user = _auth.currentUser;
+    final user = firebaseAuth.currentUser;
     if (user == null) return null;
 
-    final doc = await _firestore.collection('users').doc(user.uid).get();
+    final doc = await firestore.collection('users').doc(user.uid).get();
     if (!doc.exists) return null;
 
-    final userEntity = UserEntity.fromMap(doc.data()!);
-
-    // ✅ cache after fetching fresh data
-    await _cacheUser(userEntity);
-
-    return userEntity;
+    final entity = UserEntity.fromMap(doc.data()!);
+    await cacheUser(entity);
+    return entity;
   }
 
+  // 🔐 SIGN OUT
   Future<void> signOut() async {
-    await _auth.signOut();
-    await clearCache(); // ✅ wipe cache
+    await firebaseAuth.signOut();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user');
   }
 }
