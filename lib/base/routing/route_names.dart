@@ -8,4 +8,5 @@ class RouteNames {
   static const String ai = '/ai';
   static const String me = '/me';
   static const String editProfile = '/editProfile';
+  static const String downloads = '/downloads';
 }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:peer_net/services/download_service.dart' as ds;
-import 'package:url_launcher/url_launcher.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:http/http.dart' as http;
-import 'package:open_file/open_file.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ResourceCard extends StatefulWidget {
   final String fileName;
@@ -26,11 +26,23 @@ class ResourceCard extends StatefulWidget {
 
 class _ResourceCardState extends State<ResourceCard> {
   late final Future<Map<String, String?>> _metaFuture;
+  double? _progress;
+  bool _isDownloading = false;
+  bool _isDownloaded = false;
 
   @override
   void initState() {
     super.initState();
     _metaFuture = _fetchMetadata();
+    _checkIfDownloaded();
+  }
+
+  Future<void> _checkIfDownloaded() async {
+    final downloads = await ds.DownloadService.getAllDownloads();
+    final exists = downloads.any((d) =>
+      d.originalUrl == widget.downloadUrl ||
+      d.fileName == widget.fileName);
+    if (mounted) setState(() => _isDownloaded = exists);
   }
 
   Future<Map<String, String?>> _fetchMetadata() async {
@@ -103,7 +115,7 @@ class _ResourceCardState extends State<ResourceCard> {
   Widget build(BuildContext context) {
     return Card(
       elevation: 1,
-      margin: const EdgeInsets.all(8),
+      margin:  EdgeInsets.all(8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -111,7 +123,7 @@ class _ResourceCardState extends State<ResourceCard> {
           // Preview area
           Expanded(
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius:  BorderRadius.vertical(top: Radius.circular(12)),
               child: FutureBuilder<Map<String, String?>>(
                 future: _metaFuture,
                 builder: (context, snap) {
@@ -131,31 +143,22 @@ class _ResourceCardState extends State<ResourceCard> {
                           Container(color: Colors.black12),
                         Center(
                           child: IconButton(
-                            icon: const Icon(FluentSystemIcons.ic_fluent_arrow_download_regular),
+                            icon:  Icon(
+                              FluentSystemIcons.ic_fluent_video_clip_regular,
+                              size: 50
+                            ),
                             color: AppStyles.accentColor,
                             onPressed: () async {
-                              if (widget.downloadUrl.isEmpty) return;
-                              final messenger = ScaffoldMessenger.of(context);
-                              messenger.showSnackBar(const SnackBar(content: Text('Downloading...')));
-
-                              try {
-                                final resource = await ds.DownloadService.downloadResource(
-                                  url: widget.downloadUrl,
-                                  fileName: widget.fileName,
-                                  fileType: widget.fileType,
+                              final youtubeUrl = Uri.parse(widget.youtubeUrl);
+                              if (await canLaunchUrl(youtubeUrl)) {
+                                await launchUrl(
+                                  youtubeUrl,
+                                  mode: LaunchMode.externalApplication,
                                 );
-
-                                messenger.hideCurrentSnackBar();
-                                messenger.showSnackBar(
-                                  SnackBar(content: Text('Saved: ${resource.localPath}')),
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Could not open YouTube')),
                                 );
-
-                                // ✅ Automatically open the file
-                                await OpenFile.open(resource.localPath);
-                                setState(() {}); // refresh UI if needed
-                              } catch (e) {
-                                messenger.hideCurrentSnackBar();
-                                messenger.showSnackBar(const SnackBar(content: Text('Download failed')));
                               }
                             },
                           ),
@@ -168,7 +171,7 @@ class _ResourceCardState extends State<ResourceCard> {
                     if (widget.downloadUrl.isEmpty) {
                       return Container(
                         color: Colors.grey[100], 
-                        child: const Icon(
+                        child:  Icon(
                           FluentSystemIcons.ic_fluent_image_regular, 
                           size: 48
                         )
@@ -179,7 +182,7 @@ class _ResourceCardState extends State<ResourceCard> {
                       fit: BoxFit.cover,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
-                        return const Center(child: CircularProgressIndicator());
+                        return  Center(child: CircularProgressIndicator());
                       },
                       errorBuilder: (context, error, stack) => Container(
                         color: Colors.grey[100],
@@ -200,7 +203,7 @@ class _ResourceCardState extends State<ResourceCard> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(icon, size: 44, color: AppStyles.accentColor),
-                          if (ext.isNotEmpty) const SizedBox(height: 8),
+                          if (ext.isNotEmpty)  SizedBox(height: 8),
                           if (ext.isNotEmpty) Text(ext, style: TextStyle(color: AppStyles.accentColor.withValues(alpha: 0.9), fontWeight: FontWeight.w600)),
                         ],
                       ),
@@ -211,9 +214,17 @@ class _ResourceCardState extends State<ResourceCard> {
             ),
           ),
 
-          // Footer with name and actions
+          // Footer with name and actions and download progress
+          if (_isDownloading && _progress != null)
+          LinearProgressIndicator(
+            value: _progress,
+            minHeight: 4,
+            backgroundColor: Colors.grey.shade300,
+            color: AppStyles.accentColor,
+          ),
+
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding:  EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -249,41 +260,78 @@ class _ResourceCardState extends State<ResourceCard> {
                           showDialog(
                             context: context,
                             builder: (dialogContext) => AlertDialog(
-                              title: const Text('File info'),
+                              title:  Text('File info'),
                               content: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('Name: ${widget.fileName}'),
-                                  const SizedBox(height: 6),
+                                   SizedBox(height: 6),
                                   Text('Type: $type'),
-                                  const SizedBox(height: 6),
+                                   SizedBox(height: 6),
                                   Text('Size: $size'),
                                 ],
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.of(dialogContext).pop(),
-                                  child: const Text('Close'),
+                                  child:  Text('Close'),
                                 )
                               ],
                             ),
                           );
                         },
                       ),
-                      IconButton(
-                        icon: const Icon(FluentSystemIcons.ic_fluent_arrow_download_regular),
-                        color: AppStyles.accentColor,
-                        onPressed: () async {
-                          if (widget.downloadUrl.isEmpty) return;
-                          final uri = Uri.parse(widget.downloadUrl);
-                          if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Could not launch download url')),
-                            );
-                          }
-                        },
-                      ),
+
+                      //Check icon if downloaded
+                      _isDownloaded
+                          ? Icon(
+                              FluentSystemIcons.ic_fluent_checkmark_circle_filled,
+                              color: AppStyles.accentColor,
+                              size: 26,
+                            )
+                          : IconButton(
+                              icon:  Icon(FluentSystemIcons.ic_fluent_arrow_download_regular),
+                              color: AppStyles.accentColor,
+                              onPressed: () async {
+                                if (widget.downloadUrl.isEmpty) return;
+                                setState(() {
+                                  _isDownloading = true;
+                                  _progress = 0.0;
+                                });
+
+                                try {
+                                  final resource = await ds.DownloadService.downloadResource(
+                                    url: widget.downloadUrl,
+                                    fileName: widget.fileName,
+                                    fileType: widget.fileType,
+                                    onProgress: (p) {
+                                      setState(() => _progress = p);
+                                    },
+                                  );
+
+                                  setState(() {
+                                    _isDownloading = false;
+                                    _progress = null;
+                                    _isDownloaded = true; // ✅ Refresh after download
+                                  });
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Downloaded: ${resource.fileName}')),
+                                  );
+
+                                  await OpenFilex.open(resource.localPath);
+                                } catch (e) {
+                                  setState(() {
+                                    _isDownloading = false;
+                                    _progress = null;
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                     SnackBar(content: Text('Download failed')),
+                                  );
+                                }
+                              },
+                            ),
                     ],
                   ),
                 ],

@@ -10,6 +10,7 @@ import 'package:peer_net/features/CONNECT/connect_screen.dart';
 import 'package:peer_net/features/COURSES/presentation/courses_screen.dart';
 import 'package:peer_net/features/HOME/home_screen.dart';
 import 'package:peer_net/features/ONBOARDING/presentation/onboarding_screen.dart';
+import 'package:peer_net/features/PROFILE/downloads_screen.dart';
 import 'package:peer_net/features/PROFILE/edit_profile_screen.dart';
 import 'package:peer_net/features/PROFILE/profile_screen.dart';
 import 'package:peer_net/main.dart';
@@ -36,6 +37,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.editProfile,
         builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.downloads,
+        builder: (context, state) => const DownloadsScreen(),
       ),
       GoRoute(
         path: RouteNames.otp,

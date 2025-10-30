@@ -105,7 +105,9 @@ class ProfileScreen extends ConsumerWidget {
                       icon:   FluentSystemIcons.ic_fluent_cloud_download_filled,
                       label: "Downloads",
                       color:  AppStyles.accentColor,
-                      onTap: () {},
+                      onTap: () {
+                        context.push(RouteNames.downloads);
+                      },
                     ),
                     _buildActionItem(
                       context,

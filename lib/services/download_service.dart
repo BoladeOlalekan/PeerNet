@@ -55,30 +55,49 @@ class DownloadService {
     required String url,
     required String fileName,
     required String fileType,
-    void Function(double progress)? onProgress, // unused with http.get, kept for API
+    void Function(double progress)? onProgress,
   }) async {
     final uri = Uri.parse(url);
+    final client = http.Client();
+    final request = http.Request('GET', uri);
+    final response = await client.send(request);
 
-    final resp = await http.get(uri);
-    if (resp.statusCode != 200) throw Exception('Failed to download: ${resp.statusCode}');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to download: ${response.statusCode}');
+    }
 
     final dir = await _downloadDirectory(fileType);
     final safeName = fileName.replaceAll(RegExp(r'[\/\\]'), '_');
     final filePath = '${dir.path}/$safeName';
     final file = File(filePath);
-    await file.writeAsBytes(resp.bodyBytes, flush: true);
+    final sink = file.openWrite();
+
+    final totalBytes = response.contentLength ?? 0;
+    int received = 0;
+
+    await for (final chunk in response.stream) {
+      received += chunk.length;
+      sink.add(chunk);
+      if (onProgress != null && totalBytes > 0) {
+        onProgress(received / totalBytes);
+      }
+    }
+
+    await sink.close();
+    client.close();
 
     final resource = DownloadedResource(
       fileName: fileName,
       fileType: fileType,
       localPath: filePath,
       originalUrl: url,
-      size: resp.bodyBytes.length,
+      size: totalBytes,
     );
 
     await _saveMeta(resource);
     return resource;
   }
+
 
   static Future<void> _saveMeta(DownloadedResource r) async {
     final prefs = await SharedPreferences.getInstance();
