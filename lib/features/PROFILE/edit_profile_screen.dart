@@ -1,7 +1,8 @@
-// edit_profile_screen.dart
 import 'dart:io';
+import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
@@ -48,14 +49,43 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         maxHeight: 1200,
         imageQuality: 85,
       );
-      if (picked != null) {
+
+      if (picked == null) return;
+
+      // Let the user crop the picked image before using it
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: picked.path,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        compressQuality: 85,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Photo',
+            toolbarColor: AppStyles.primaryColor,
+            toolbarWidgetColor: Colors.white,
+            lockAspectRatio: false,
+          ),
+          IOSUiSettings(
+            title: 'Crop Photo',
+            aspectRatioLockEnabled: false,
+          ),
+        ],
+      );
+
+      if (cropped != null) {
+        setState(() => _selectedImage = File(cropped.path));
+      } else {
+        // If user cancelled cropping, optionally keep the original picked image
         setState(() => _selectedImage = File(picked.path));
       }
     } catch (e) {
-      debugPrint('Image pick failed: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not pick image')),
-      );
+      debugPrint('Image pick/crop failed: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not pick or crop image')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isPicking = false);
     }
@@ -146,16 +176,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   bottom: BorderSide(color: Colors.grey.shade300, width: 0.8),
                 ),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back),
+                    icon: Icon(FluentSystemIcons.ic_fluent_ios_arrow_left_filled),
                     color: Colors.black87,
                     onPressed: () => context.pop(),
                   ),
-                  const Text(
+                  Text(
                     "Edit Profile",
                     style: TextStyle(
                       fontSize: 18,
@@ -163,7 +193,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(width: 48),
+                  SizedBox(width: 48),
                 ],
               ),
             ),
@@ -193,7 +223,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                 height: 40,
                                 width: 40,
                                 decoration: BoxDecoration(
-                                  color: AppStyles.primaryColor,
+                                  color: AppStyles.accentColor,
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
@@ -212,7 +242,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                         ),
                                       )
                                     : const Icon(
-                                        Icons.photo_camera,
+                                        FluentSystemIcons.ic_fluent_camera_add_filled,
                                         color: Colors.white,
                                         size: 22,
                                       ),
@@ -227,44 +257,31 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         SizedBox(
                           height: 40,
                           child: TextButton(
-                            style: TextButton.styleFrom(
-                              backgroundColor: Colors.grey.shade200,
-                              foregroundColor: Colors.black87,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
+                            style: AppStyles.editProfileButton,
                             onPressed: _pickImage,
-                            child: const Text(
+                            child: Text(
                               "Change Photo",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
+                              style: AppStyles.editText,
                             ),
                           ),
                         ),
 
-                        const SizedBox(height: 32),
+                        SizedBox(height: 32),
 
                         // Nickname
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               "Nickname",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
+                              style: AppStyles.inputLabel.copyWith(color: AppStyles.subText)
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 1),
                             TextField(
                               controller: nicknameController,
                               decoration: InputDecoration(
                                 hintText: "Enter your nickname",
-                                hintStyle: TextStyle(color: Colors.grey.shade500),
+                                hintStyle: AppStyles.hintStyle,
                                 enabledBorder: UnderlineInputBorder(
                                   borderSide: BorderSide(
                                     color: Colors.grey.shade400,
@@ -273,14 +290,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                 ),
                                 focusedBorder: UnderlineInputBorder(
                                   borderSide: BorderSide(
-                                    color: AppStyles.primaryColor,
+                                    color: AppStyles.accentColor,
                                     width: 2,
                                   ),
                                 ),
                               ),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.black87,
+                                color: AppStyles.subText,
                               ),
                             ),
                           ],
@@ -294,12 +311,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
             // === SAVE BUTTON ===
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               decoration: BoxDecoration(
                 border: Border(
                   top: BorderSide(color: Colors.grey.shade300, width: 0.8),
                 ),
-                color: AppStyles.backgroundColor.withOpacity(0.9),
+                color: AppStyles.backgroundColor.withValues(alpha: 0.9),
               ),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
@@ -316,18 +333,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       ),
                     ),
                     child: _isSaving
-                        ? const CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          )
-                        : const Text(
-                            "Save Changes",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
+                    ? const CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      )
+                    : Text(
+                      "Save Changes",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
                   ),
                 ),
               ),

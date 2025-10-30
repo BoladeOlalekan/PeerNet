@@ -1,3 +1,4 @@
+import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:peer_net/base/widgets/course/resource_card.dart';
@@ -22,6 +23,13 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(
+            FluentSystemIcons.ic_fluent_ios_arrow_left_filled, 
+            color: Colors.black
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: Text(
           "${course.courseCode} - ${course.courseName}",
           style: AppStyles.doubleText1.copyWith(fontWeight: FontWeight.w500),
