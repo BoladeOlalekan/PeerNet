@@ -1,8 +1,10 @@
 import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/media.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
+import 'package:peer_net/base/routing/route_names.dart';
 import 'package:peer_net/base/widgets/course/course_list.dart';
 import 'package:peer_net/base/widgets/route_double_text.dart';
 import 'package:peer_net/features/AUTH/application/auth_providers.dart';
@@ -37,9 +39,21 @@ class HomeScreen extends ConsumerWidget {
                   Row(
                     children: [
                       IconButton(
-                        icon: Icon(FluentSystemIcons.ic_fluent_upload_regular, size: 30),
-                        onPressed: () {}, 
+                        icon: const Icon(FluentSystemIcons.ic_fluent_upload_regular, size: 30),
+                        onPressed: () {
+                          if (user != null) {
+                            context.push(
+                              RouteNames.uploads,
+                              extra: user,
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("User not loaded yet")),
+                            );
+                          }
+                        },
                       ),
+
                       IconButton(
                         icon: const Icon(FluentSystemIcons.ic_fluent_alert_regular, size: 30),
                         onPressed: () {}, 

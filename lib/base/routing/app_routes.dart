@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/routing/route_names.dart';
+import 'package:peer_net/features/AUTH/domain/user_entity.dart';
+import 'package:peer_net/features/HOME/upload_course/upload_material_screen.dart';
 import 'package:peer_net/features/PEERai/ai_screen.dart';
 import 'package:peer_net/features/AUTH/data/auth_repository.dart';
 import 'package:peer_net/features/AUTH/presentation/auth.dart';
@@ -42,6 +44,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: RouteNames.downloads,
         builder: (context, state) => const DownloadsScreen(),
       ),
+      GoRoute(
+        path: RouteNames.uploads,
+        builder: (context, state) {
+          final user = state.extra as UserEntity;
+          return UploadMaterialScreen(currentUser: user);
+        },
+      ),
+
       GoRoute(
         path: RouteNames.otp,
         builder: (context, state) {

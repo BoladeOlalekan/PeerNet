@@ -9,4 +9,5 @@ class RouteNames {
   static const String me = '/me';
   static const String editProfile = '/editProfile';
   static const String downloads = '/downloads';
+  static const String uploads = '/uploads';
 }

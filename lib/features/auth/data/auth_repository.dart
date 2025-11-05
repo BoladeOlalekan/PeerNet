@@ -1,14 +1,17 @@
+// ignore_for_file: avoid_print
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:peer_net/features/AUTH/domain/user_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
-final authRepositoryProvider = Provider<AuthRepository>((ref) {
+
+final authRepositoryProvider = riverpod.Provider<AuthRepository>((ref) {
   return AuthRepository(
     firebaseAuth: FirebaseAuth.instance,
     firestore: FirebaseFirestore.instance,
@@ -165,6 +168,7 @@ class AuthRepository {
       await firestore.collection('users').doc(uid).set(userEntity.toMap());
       await cacheUser(userEntity);
 
+      await syncFirebaseToSupabase();
       return userEntity;
     } catch (e) {
       print('⚠️ Error creating user: $e');
@@ -182,6 +186,8 @@ class AuthRepository {
         email: email,
         password: password,
       );
+
+      await syncFirebaseToSupabase();
 
       return await fetchCurrentUser();
     } catch (e) {
@@ -201,6 +207,46 @@ class AuthRepository {
     final entity = UserEntity.fromMap(doc.data()!);
     await cacheUser(entity);
     return entity;
+  }
+
+  //Sync Firebase user with Supabase
+  Future<void> syncFirebaseToSupabase() async {
+    final user = firebaseAuth.currentUser;
+    if (user == null) return;
+
+    try {
+      // Get Firebase ID token
+      final firebaseToken = await user.getIdToken(true);
+
+      // Read Supabase credentials from .env
+      final supabaseUrl = dotenv.env['SUPABASE_URL']!;
+      final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY']!;
+
+      // Call Supabase Auth REST API
+      final url = Uri.parse('$supabaseUrl/auth/v1/token?grant_type=id_token');
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseAnonKey,
+        },
+        body: jsonEncode({
+          'provider': 'firebase',
+          'id_token': firebaseToken,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await Supabase.instance.client.auth.setSession(data['access_token']);
+        print('✅ Supabase session created successfully!');
+        print(data);
+      } else {
+        print('❌ Supabase login failed: ${response.body}');
+      }
+    } catch (e) {
+      print('Error syncing Firebase → Supabase: $e');
+    }
   }
 
   // 🔐 SIGN OUT
