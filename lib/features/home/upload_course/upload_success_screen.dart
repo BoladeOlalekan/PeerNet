@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/media.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
+import 'package:peer_net/base/routing/route_names.dart';
 
 class UploadSuccessScreen extends StatelessWidget {
   const UploadSuccessScreen({super.key});
@@ -19,12 +21,10 @@ class UploadSuccessScreen extends StatelessWidget {
               children: [
                 //Image
                 Image.asset(
-                  AppMedia.thankyou,
-                  //height: 200,
+                  AppMedia.thankYou,
                 ),
                  SizedBox(height: 32),
 
-                // ✅ Text
                 Text(
                   "Thank you for contributing!",
                   textAlign: TextAlign.center,
@@ -45,14 +45,14 @@ class UploadSuccessScreen extends StatelessWidget {
                   ),
                 ),
 
-                 SizedBox(height: 40),
+                SizedBox(height: 40),
 
                 // ✅ Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      Navigator.popUntil(context, (route) => route.isFirst);
+                      context.go(RouteNames.home);
                     },
                     icon:  Icon(
                       FluentSystemIcons.ic_fluent_home_filled,

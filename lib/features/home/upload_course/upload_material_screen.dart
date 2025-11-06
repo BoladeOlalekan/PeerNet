@@ -179,7 +179,7 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
       );
 
       // After successful upload
-      context.go(RouteNames.thankYou);
+      context.push(RouteNames.thankYou);
 
       setState(() {
         _selectedFile = null;
