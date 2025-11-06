@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/routing/route_names.dart';
 import 'package:peer_net/features/AUTH/domain/user_entity.dart';
 import 'package:peer_net/features/HOME/upload_course/upload_material_screen.dart';
+import 'package:peer_net/features/HOME/upload_course/upload_success_screen.dart';
 import 'package:peer_net/features/PEERai/ai_screen.dart';
 import 'package:peer_net/features/AUTH/data/auth_repository.dart';
 import 'package:peer_net/features/AUTH/presentation/auth.dart';
@@ -50,6 +51,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           final user = state.extra as UserEntity;
           return UploadMaterialScreen(currentUser: user);
         },
+      ),
+      GoRoute(
+        path: RouteNames.thankYou,
+        builder: (context, state) => const UploadSuccessScreen(),
       ),
 
       GoRoute(

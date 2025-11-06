@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
+import 'package:peer_net/base/routing/route_names.dart';
 import 'package:peer_net/features/AUTH/domain/user_entity.dart';
 import 'package:peer_net/features/HOME/upload_course/upload_material_controller.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
@@ -163,26 +165,21 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
       setState(() {}); // optional: trigger loading indicator
 
       await ref
-          .read(uploadMaterialControllerProvider.notifier)
-          
-          .uploadMaterial(
-            uploaderId: firebaseUser.uid,
-            department: widget.currentUser.department,
-            courseId: _selectedCourseId!,
-            fileType: _selectedFileType!,
-            file: _selectedFile!,
-            level: _parseLevel(widget.currentUser.level),
-            semester: _selectedSemester!, 
-            courseCode: courseCode,
-          );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'File uploaded successfully and awaiting admin approval.',
-          ),
-        ),
+      .read(uploadMaterialControllerProvider.notifier)
+      
+      .uploadMaterial(
+        uploaderId: firebaseUser.uid,
+        department: widget.currentUser.department,
+        courseId: _selectedCourseId!,
+        fileType: _selectedFileType!,
+        file: _selectedFile!,
+        level: _parseLevel(widget.currentUser.level),
+        semester: _selectedSemester!, 
+        courseCode: courseCode,
       );
+
+      // After successful upload
+      context.go(RouteNames.thankYou);
 
       setState(() {
         _selectedFile = null;
