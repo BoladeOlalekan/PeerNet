@@ -11,4 +11,7 @@ class RouteNames {
   static const String downloads = '/downloads';
   static const String uploads = '/uploads';
   static const String thankYou = '/thankYou';
+  static const String courseDetails = '/courseDetails';
+  static const String myUploads = '/myUploads';
+  static const String notifications = '/notifications';
 }

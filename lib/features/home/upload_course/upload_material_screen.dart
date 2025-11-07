@@ -8,6 +8,7 @@ import 'package:peer_net/base/routing/route_names.dart';
 import 'package:peer_net/features/AUTH/domain/user_entity.dart';
 import 'package:peer_net/features/HOME/upload_course/upload_material_controller.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
+import 'package:peer_net/main.dart';
 
 class UploadMaterialScreen extends ConsumerStatefulWidget {
   final UserEntity currentUser;
@@ -31,7 +32,8 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
   String? _selectedFileType;
   File? _selectedFile;
 
-  bool _isLoading = true;
+  bool _loadingSemesters = true;
+
   int _parseLevel(String levelStr) {
     final digits = RegExp(r'\d+').stringMatch(levelStr);
     return digits != null ? int.parse(digits) : 100;
@@ -40,10 +42,10 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSemesters();
+    _fetchSemestersInBackground();
   }
 
-  Future<void> _loadSemesters() async {
+  Future<void> _fetchSemestersInBackground() async {
     try {
       final level = _parseLevel(widget.currentUser.level);
       final semesters = await ref
@@ -53,15 +55,17 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
             level: level,
           );
 
-      setState(() {
-        _semesters = semesters;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _semesters = semesters;
+          _loadingSemesters = false;
+        });
+      }
     } catch (e) {
-      print("Error fetching semesters: $e");
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() => _loadingSemesters = false);
+      }
+      debugPrint("Error fetching semesters: $e");
     }
   }
 
@@ -76,23 +80,19 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
             level: level,
             semester: semester,
           );
-      setState(() {
-        _courses = data;
-      });
+      setState(() => _courses = data);
     } catch (e) {
-      print("Error fetching courses: $e");
+      debugPrint("Error fetching courses: $e");
     }
   }
 
   Future<void> _pickFile() async {
     try {
-      final file = await ref
-          .read(uploadMaterialControllerProvider.notifier)
-          .pickFile();
+      final file =
+          await ref.read(uploadMaterialControllerProvider.notifier).pickFile();
       if (file == null) return;
 
       final extension = file.path.split('.').last.toLowerCase();
-
       final allowedExtensions = {
         'note': ['pdf', 'docx', 'pptx', 'txt', 'xlsx', 'jpg', 'jpeg', 'png'],
         'video': ['mp4', 'mov', 'avi', 'mkv'],
@@ -101,24 +101,18 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
 
       final selectedType = _selectedFileType?.toLowerCase();
       if (selectedType == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please select a file type first')),
-        );
+        _showSnack('Please select a file type first');
         return;
       }
 
       if (!allowedExtensions[selectedType]!.contains(extension)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Invalid file type for $_selectedFileType')),
-        );
+        _showSnack('Invalid file type for $_selectedFileType');
         return;
       }
 
       setState(() => _selectedFile = file);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error picking file: $e')));
+      _showSnack('Error picking file: $e');
     }
   }
 
@@ -126,292 +120,242 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedFile == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a file')));
+      _showSnack('Please select a file');
       return;
     }
 
     if (_selectedCourseId == null ||
         _selectedFileType == null ||
         _selectedSemester == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all required fields')),
-      );
+      _showSnack('Please fill all required fields');
       return;
     }
 
     final firebaseUser = FirebaseAuth.instance.currentUser;
-    print(
-      '🔹 Firebase user: ${firebaseUser?.uid} | email: ${firebaseUser?.email}',
-    );
-
     if (firebaseUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Firebase user not authenticated')),
-      );
+      _showSnack('Firebase user not authenticated');
       return;
     }
 
-    // To get selected course
     final selectedCourse = _courses.firstWhere(
       (course) => course['id'].toString() == _selectedCourseId!,
     );
 
     final courseCode = selectedCourse['course_code'] as String;
 
-    // 🔹 All auth checks passed, proceed to upload
     try {
-      setState(() {}); // optional: trigger loading indicator
-
-      await ref
-      .read(uploadMaterialControllerProvider.notifier)
-      
-      .uploadMaterial(
+      await ref.read(uploadMaterialControllerProvider.notifier).uploadMaterial(
         uploaderId: firebaseUser.uid,
         department: widget.currentUser.department,
         courseId: _selectedCourseId!,
         fileType: _selectedFileType!,
         file: _selectedFile!,
         level: _parseLevel(widget.currentUser.level),
-        semester: _selectedSemester!, 
+        semester: _selectedSemester!,
         courseCode: courseCode,
       );
 
-      // After successful upload
-      context.push(RouteNames.thankYou);
+      // ✅ Trigger local notification after successful upload
+      final notifier = ref.read(notificationServiceProvider);
+      await notifier.showNotification(
+        title: 'Upload Complete!',
+        body: 'Your course material has been submitted for admin review.',
+      );
 
-      setState(() {
-        _selectedFile = null;
-        _selectedCourseId = null;
-        _selectedFileType = null;
-        _selectedSemester = null;
-      });
+      if (mounted) {
+        context.push(RouteNames.thankYou);
+        setState(() {
+          _selectedFile = null;
+          _selectedCourseId = null;
+          _selectedFileType = null;
+          _selectedSemester = null;
+        });
+      }
     } catch (e) {
-      print('❌ Upload failed: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+      _showSnack('Upload failed: $e');
     }
+  }
+
+  void _showSnack(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
   Widget build(BuildContext context) {
     final uploadState = ref.watch(uploadMaterialControllerProvider);
 
-    if (_isLoading) {
-      return Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: Text('Upload File'),
+        title: const Text('Upload File'),
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(FluentSystemIcons.ic_fluent_ios_arrow_left_filled),
+          icon: const Icon(FluentSystemIcons.ic_fluent_ios_arrow_left_filled),
           color: AppStyles.subText,
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              _buildReadonlyField("Department", widget.currentUser.department),
-              SizedBox(height: 16),
-              _buildReadonlyField("Level", widget.currentUser.level),
+      body: _loadingSemesters
+      ? const Center(child: CircularProgressIndicator())
+      : Padding(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                _buildReadonlyField("Department", widget.currentUser.department),
+                const SizedBox(height: 16),
+                _buildReadonlyField("Level", widget.currentUser.level),
+                const SizedBox(height: 16),
 
-              SizedBox(height: 16),
-
-              // Semester Dropdown
-              DropdownButtonFormField<String>(
-                value: _selectedSemester,
-                isExpanded: true,
-                items: _semesters
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedSemester = value;
-                    _selectedCourseId = null;
-                    if (value != null) _loadCourses(value);
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: 'Select Semester',
-                  hintStyle: AppStyles.hintStyle,
-                  filled: true,
-                  fillColor: AppStyles.backgroundColor,
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
+                // Semester Dropdown
+                _buildDropdown(
+                  value: _selectedSemester,
+                  items: _semesters,
+                  hint: 'Select Semester',
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedSemester = value;
+                      _selectedCourseId = null;
+                      if (value != null) _loadCourses(value);
+                    });
+                  },
+                  validator: (v) =>
+                      v == null ? 'Please select a semester' : null,
                 ),
-                validator: (v) => v == null ? 'Please select a semester' : null,
-              ),
+                const SizedBox(height: 16),
 
-              SizedBox(height: 16),
-
-              // Course Dropdown
-              DropdownButtonFormField<String>(
-                value: _selectedCourseId,
-                isExpanded: true,
-                items: _courses
-                    .map(
-                      (course) => DropdownMenuItem(
-                        value: course['id'].toString(),
-                        child: Text(
-                          '${course['course_code']} - ${course['course_name']}',
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                // Course Dropdown
+                DropdownButtonFormField<String>(
+                  value: _selectedCourseId,
+                  isExpanded: true,
+                  items: _courses
+                  .map(
+                    (course) => DropdownMenuItem<String>(
+                      value: course['id'].toString(),
+                      child: Text(
+                        '${course['course_code']} - ${course['course_name']}',
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    )
-                    .toList(),
-                onChanged: (v) => setState(() => _selectedCourseId = v),
-                decoration: InputDecoration(
-                  hintText: 'Select Course',
-                  hintStyle: AppStyles.hintStyle,
-                  filled: true,
-                  fillColor: AppStyles.backgroundColor,
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(12),
+                    ),
+                  )
+                  .toList(),
+                  onChanged: (v) => setState(() => _selectedCourseId = v),
+                  decoration: InputDecoration(
+                    hintText: 'Select Course',
+                    hintStyle: AppStyles.hintStyle,
+                    filled: true,
+                    fillColor: AppStyles.backgroundColor,
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                   ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
+                  validator: (v) => v == null ? 'Please select a course' : null,
                 ),
-                validator: (v) => v == null ? 'Please select a course' : null,
-              ),
-              SizedBox(height: 16),
 
-              // File Type Dropdown
-              DropdownButtonFormField<String>(
-                value: _selectedFileType,
-                isExpanded: true,
-                items: _fileTypes
-                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
-                    .toList(),
-                onChanged: (v) => setState(() => _selectedFileType = v),
-                decoration: InputDecoration(
-                  hintText: 'Select File Type',
-                  hintStyle: AppStyles.hintStyle,
-                  filled: true,
-                  fillColor: AppStyles.backgroundColor,
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
+                const SizedBox(height: 16),
+
+                // File Type Dropdown
+                _buildDropdown(
+                  value: _selectedFileType,
+                  items: _fileTypes,
+                  hint: 'Select File Type',
+                  onChanged: (v) => setState(() => _selectedFileType = v),
+                  validator: (v) =>
+                      v == null ? 'Please select a file type' : null,
                 ),
-                validator: (v) =>
-                    v == null ? 'Please select a file type' : null,
-              ),
-              SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // File Picker
-              GestureDetector(
-                onTap: _pickFile,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 48),
-                  decoration: BoxDecoration(
-                    color: AppStyles.backgroundColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Icon(
-                          FluentSystemIcons.ic_fluent_folder_filled,
-                          color: AppStyles.accentColor,
-                          size: 35,
-                        ),
-                        SizedBox(width: 10),
-                        Flexible(
-                          child: Text(
-                            _selectedFile != null
-                                ? _selectedFile!.path.split('/').last
-                                : 'Select File',
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: _selectedFile == null
-                                  ? Colors.grey
-                                  : Colors.black87,
+                // File Picker
+                GestureDetector(
+                  onTap: _pickFile,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 48),
+                    decoration: BoxDecoration(
+                      color: AppStyles.backgroundColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            FluentSystemIcons.ic_fluent_folder_filled,
+                            color: AppStyles.accentColor,
+                            size: 35,
+                          ),
+                          const SizedBox(width: 10),
+                          Flexible(
+                            child: Text(
+                              _selectedFile != null
+                                  ? _selectedFile!.path.split('/').last
+                                  : 'Select File',
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: _selectedFile == null
+                                    ? Colors.grey
+                                    : Colors.black87,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 24),
-
-              // Submit as TextButton.icon (styled like edit button)
-              TextButton.icon(
-                style: ButtonStyle(
-                  padding: WidgetStateProperty.all(
-                    EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  backgroundColor: WidgetStateProperty.resolveWith(
-                    (states) => AppStyles.primaryColor,
-                  ),
-                  foregroundColor: WidgetStateProperty.resolveWith(
-                    (states) => AppStyles.accentColor,
-                  ),
-                  overlayColor: WidgetStateProperty.all(Colors.transparent),
-                  shape: WidgetStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                onPressed: () {
-                  if (uploadState.isLoading) return;
-                  _submit();
-                },
-                icon: uploadState.isLoading
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Icon(
-                        FluentSystemIcons.ic_fluent_upload_filled,
-                        size: 18,
-                        color: AppStyles.borderText,
+                        ],
                       ),
-                label: Text(
-                  uploadState.isLoading ? 'Uploading...' : 'Submit',
-                  style: AppStyles.editText.copyWith(
-                    fontSize: 18,
-                    color: AppStyles.borderText,
+                    ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+
+                // Submit button
+                TextButton.icon(
+                  style: ButtonStyle(
+                    padding: WidgetStateProperty.all(
+                      const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    backgroundColor: WidgetStateProperty.all(
+                        AppStyles.primaryColor),
+                    foregroundColor:
+                        WidgetStateProperty.all(AppStyles.accentColor),
+                    shape: WidgetStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  onPressed: uploadState.isLoading ? null : _submit,
+                  icon: uploadState.isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Icon(
+                          FluentSystemIcons.ic_fluent_upload_filled,
+                          size: 18,
+                          color: AppStyles.borderText,
+                        ),
+                  label: Text(
+                    uploadState.isLoading ? 'Uploading...' : 'Submit',
+                    style: AppStyles.editText.copyWith(
+                      fontSize: 18,
+                      color: AppStyles.borderText,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
     );
   }
 
@@ -426,7 +370,7 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
             fontSize: 16,
           ),
         ),
-        SizedBox(height: 6),
+        const SizedBox(height: 6),
         TextFormField(
           readOnly: true,
           initialValue: value,
@@ -440,6 +384,36 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDropdown({
+    required String? value,
+    required List<String> items,
+    required String hint,
+    required ValueChanged<String?> onChanged,
+    required FormFieldValidator<String>? validator,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      isExpanded: true,
+      items: items
+          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+          .toList(),
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: AppStyles.hintStyle,
+        filled: true,
+        fillColor: AppStyles.backgroundColor,
+        border: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      ),
+      validator: validator,
     );
   }
 }

@@ -102,6 +102,15 @@ class ProfileScreen extends ConsumerWidget {
                     // Action Items
                     _buildActionItem(
                       context,
+                      icon: FluentSystemIcons.ic_fluent_upload_filled,
+                      label: "My Uploads",
+                      color: AppStyles.accentColor,
+                      onTap: () {
+                        context.push(RouteNames.myUploads);
+                      },
+                    ),
+                    _buildActionItem(
+                      context,
                       icon:   FluentSystemIcons.ic_fluent_cloud_download_filled,
                       label: "Downloads",
                       color:  AppStyles.accentColor,

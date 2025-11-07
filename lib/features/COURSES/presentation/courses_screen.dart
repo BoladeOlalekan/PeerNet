@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
+import 'package:peer_net/base/routing/route_names.dart';
 import 'package:peer_net/base/widgets/course/course_card.dart';
 import 'package:peer_net/features/COURSES/application/course_provider.dart';
-import 'package:peer_net/features/COURSES/presentation/course_details_screen.dart';
 
 class CoursesScreen extends ConsumerStatefulWidget {
   final String department;
@@ -199,13 +200,11 @@ class _CourseListBuilder extends ConsumerWidget {
 
             return CourseCard(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => CourseDetailsScreen(course: course),
-                  ),
+                context.push(
+                  RouteNames.courseDetails,
+                  extra: course,
                 );
-              }, 
+              },
               courseCode: course.courseCode, 
               courseName: course.courseName,
             );

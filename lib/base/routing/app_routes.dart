@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/routing/route_names.dart';
+import 'package:peer_net/base/widgets/notification/notification_page.dart';
 import 'package:peer_net/features/AUTH/domain/user_entity.dart';
+import 'package:peer_net/features/COURSES/models/course_model.dart';
+import 'package:peer_net/features/COURSES/presentation/course_details_screen.dart';
 import 'package:peer_net/features/HOME/upload_course/upload_material_screen.dart';
 import 'package:peer_net/features/HOME/upload_course/upload_success_screen.dart';
 import 'package:peer_net/features/PEERai/ai_screen.dart';
@@ -16,6 +19,7 @@ import 'package:peer_net/features/ONBOARDING/presentation/onboarding_screen.dart
 import 'package:peer_net/features/PROFILE/downloads_screen.dart';
 import 'package:peer_net/features/PROFILE/edit_profile_screen.dart';
 import 'package:peer_net/features/PROFILE/profile_screen.dart';
+import 'package:peer_net/features/PROFILE/user_uploads_screen.dart';
 import 'package:peer_net/main.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
 
@@ -46,6 +50,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const DownloadsScreen(),
       ),
       GoRoute(
+        path: RouteNames.myUploads,
+        builder: (context, state) => const UserUploadsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.notifications,
+        builder: (context, state) => const NotificationPage(),
+      ),
+      GoRoute(
         path: RouteNames.uploads,
         builder: (context, state) {
           final user = state.extra as UserEntity;
@@ -70,6 +82,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             );
           },
         ),
+      ),
+      GoRoute(
+        path: RouteNames.courseDetails,
+        name: RouteNames.courseDetails,
+        builder: (context, state) {
+          final course = state.extra as CourseModel;
+          return CourseDetailsScreen(course: course);
+        },
       ),
 
       GoRoute(
@@ -150,7 +170,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   transitionsBuilder: (context, animation, secondaryAnimation, child) {
                     return SlideTransition(
                       position: Tween<Offset>(
-                        begin: const Offset(-0.1, 0), // slide from left
+                        begin: const Offset(-0.1, 0),
                         end: Offset.zero,
                       ).animate(animation),
                       child: child,

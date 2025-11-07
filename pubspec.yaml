@@ -19,6 +19,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_dotenv: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_local_notifications: ^19.5.0
   flutter_riverpod: ^3.0.0
   flutter_svg: ^2.2.1
   foundation: ^0.0.5
@@ -49,7 +51,15 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/icon/
     - .env
 
 dependency_overrides:
   shared_preferences_android: 2.4.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  min_sdk_android: 21
+
