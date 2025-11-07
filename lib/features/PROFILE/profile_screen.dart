@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,10 +47,10 @@ class ProfileScreen extends ConsumerWidget {
                         CircleAvatar(
                           radius: 40,
                           backgroundImage: (user?.avatarUrl ?? '').isNotEmpty
-                            ? NetworkImage(user!.avatarUrl!)
+                            ? CachedNetworkImageProvider(user!.avatarUrl!)
                             : NetworkImage(
                               "https://lh3.googleusercontent.com/aida-public/AB6AXuAtUmPCV6_iCOw7mfIDLIbHfyRdhGLNhWrGUWwKzn10lTqztThDu-icL7IiAM75CLZHodix_8vcv77mkcS22DlZWH3GF6agpNnWFM56lErAWXkkILztdTCEadhGWfSyRkAgXp33mRtDq_uYzSceLJmsJ3TLKmiIBQzsfUQ-F9bI4u5iIkhyMDqiQ8_PQL8-B_pBDgmUKDDusHVyuvibsO9n39azqEzIskQ-uQ7T_N_gAEI9eacxj6NEdq_P0AVrkN-GoZpx7C7CZmQ",
-                            ),
+                            ) as ImageProvider,
                         ),
                         SizedBox(width: 16),
                         Expanded(

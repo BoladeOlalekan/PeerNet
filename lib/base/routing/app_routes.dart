@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/routing/route_names.dart';
 import 'package:peer_net/base/widgets/notification/notification_page.dart';
+import 'package:peer_net/base/widgets/notification/splash/flutter_splash_screen.dart';
 import 'package:peer_net/features/AUTH/domain/user_entity.dart';
 import 'package:peer_net/features/COURSES/models/course_model.dart';
 import 'package:peer_net/features/COURSES/presentation/course_details_screen.dart';
@@ -27,8 +28,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
 
   return GoRouter(
-    initialLocation: RouteNames.onboarding,
+    initialLocation: RouteNames.splash,
     routes: [
+      GoRoute(
+        path: RouteNames.splash,
+        builder: (context, state) => const FlutterSplashScreen(),
+      ),
       GoRoute(
         path: RouteNames.onboarding,
         builder: (context, state) => const OnboardingScreen(),

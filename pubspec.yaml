@@ -8,6 +8,7 @@ environment:
   sdk: ^3.8.1
 
 dependencies:
+  cached_network_image: ^3.4.1
   cloud_firestore: ^5.6.12
   cloud_functions: ^5.6.0
   crop_your_image: ^2.0.0
@@ -70,4 +71,3 @@ flutter_native_splash:
   web: true
   color: "#FFFFFF"
   image: assets/images/splash_logo.png
-  
