@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:peer_net/base/routing/route_names.dart';
 
 class FlutterSplashScreen extends StatefulWidget {
@@ -15,17 +16,21 @@ class _FlutterSplashScreenState extends State<FlutterSplashScreen> {
   void initState() {
     super.initState();
 
-    // Lock status bar style to match native splash
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
+      statusBarIconBrightness: Brightness.light,
     ));
 
-    Future.delayed(const Duration(seconds: 2), () {
-      context.pushReplacement(
-        RouteNames.onboarding,
-        extra: {'transition': 'fade'},
-      );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.dark,
+          ));
+          context.go(RouteNames.onboarding);
+        }
+      });
     });
   }
 
@@ -33,27 +38,20 @@ class _FlutterSplashScreenState extends State<FlutterSplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/splash_logo.png',
-              fit: BoxFit.cover,
-            ),
+      backgroundColor: AppStyles.primaryColor,
+      body: Container(
+        alignment: Alignment.center,
+        color: AppStyles.primaryColor,
+        child: AnimatedOpacity(
+          opacity: 1,
+          duration: const Duration(seconds: 2),
+          child: Image.asset(
+            'assets/images/splash_logo.png',
+            width: 180,
+            fit: BoxFit.contain,
+            scale: 2.0,
           ),
-          // Overlay logo animation
-          Center(
-            child: AnimatedOpacity(
-              opacity: 1,
-              duration: const Duration(seconds: 2),
-              child: Image.asset(
-                'assets/images/splash_logo.png',
-                width: 150,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

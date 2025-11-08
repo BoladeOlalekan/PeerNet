@@ -24,94 +24,146 @@ import 'package:peer_net/features/PROFILE/user_uploads_screen.dart';
 import 'package:peer_net/main.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
 
+/// 🪄 Helper for smooth transitions
+CustomTransitionPage<dynamic> buildSlideTransitionPage({
+  required GoRouterState state,
+  required Widget child,
+  Offset beginOffset = const Offset(0.1, 0), // default: slide from right
+}) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 300),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: animation,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: beginOffset,
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
 
   return GoRouter(
     initialLocation: RouteNames.splash,
     routes: [
+      /// 🟦 Splash
       GoRoute(
         path: RouteNames.splash,
         builder: (context, state) => const FlutterSplashScreen(),
       ),
+
+      /// 🟩 Onboarding
       GoRoute(
         path: RouteNames.onboarding,
-        builder: (context, state) => const OnboardingScreen(),
+        pageBuilder: (context, state) =>
+            buildSlideTransitionPage(state: state, child: const OnboardingScreen()),
       ),
+
+      /// 🟨 Auth
       GoRoute(
         path: RouteNames.auth,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           final showSignUp = extra?['showSignUp'] as bool? ?? true;
-          return AuthScreen(showSignUp: showSignUp);
-        },
-      ),
-      GoRoute(
-        path: RouteNames.editProfile,
-        builder: (context, state) => const EditProfileScreen(),
-      ),
-      GoRoute(
-        path: RouteNames.downloads,
-        builder: (context, state) => const DownloadsScreen(),
-      ),
-      GoRoute(
-        path: RouteNames.myUploads,
-        builder: (context, state) => const UserUploadsScreen(),
-      ),
-      GoRoute(
-        path: RouteNames.notifications,
-        builder: (context, state) => const NotificationPage(),
-      ),
-      GoRoute(
-        path: RouteNames.uploads,
-        builder: (context, state) {
-          final user = state.extra as UserEntity;
-          return UploadMaterialScreen(currentUser: user);
-        },
-      ),
-      GoRoute(
-        path: RouteNames.thankYou,
-        pageBuilder: (context, state) => CustomTransitionPage(
-          key: state.pageKey,
-          child: const UploadSuccessScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.1),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              ),
-            );
-          },
-        ),
-      ),
-      GoRoute(
-        path: RouteNames.courseDetails,
-        name: RouteNames.courseDetails,
-        builder: (context, state) {
-          final course = state.extra as CourseModel;
-          return CourseDetailsScreen(course: course);
-        },
-      ),
-
-      GoRoute(
-        path: RouteNames.otp,
-        builder: (context, state) {
-          final data = state.extra as Map<String, String>;
-
-          return OtpVerificationScreen(
-            email: data['email']!,
-            password: data['password']!,
-            name: data['name']!,
-            nickname: data['nickname']!,
-            level: data['level']!,
-            department: data['department']!,
+          return buildSlideTransitionPage(
+            state: state,
+            child: AuthScreen(showSignUp: showSignUp),
           );
         },
       ),
+
+      /// 🟧 OTP
+      GoRoute(
+        path: RouteNames.otp,
+        pageBuilder: (context, state) {
+          final data = state.extra as Map<String, String>;
+          return buildSlideTransitionPage(
+            state: state,
+            beginOffset: const Offset(0, 0.1), // slide up
+            child: OtpVerificationScreen(
+              email: data['email']!,
+              password: data['password']!,
+              name: data['name']!,
+              nickname: data['nickname']!,
+              level: data['level']!,
+              department: data['department']!,
+            ),
+          );
+        },
+      ),
+
+      /// 🟪 Edit Profile
+      GoRoute(
+        path: RouteNames.editProfile,
+        pageBuilder: (context, state) =>
+            buildSlideTransitionPage(state: state, child: const EditProfileScreen()),
+      ),
+
+      /// 🟦 Downloads
+      GoRoute(
+        path: RouteNames.downloads,
+        pageBuilder: (context, state) =>
+            buildSlideTransitionPage(state: state, child: const DownloadsScreen()),
+      ),
+
+      /// 🟨 My Uploads
+      GoRoute(
+        path: RouteNames.myUploads,
+        pageBuilder: (context, state) =>
+            buildSlideTransitionPage(state: state, child: const UserUploadsScreen()),
+      ),
+
+      /// 🔔 Notifications
+      GoRoute(
+        path: RouteNames.notifications,
+        pageBuilder: (context, state) =>
+            buildSlideTransitionPage(state: state, child: const NotificationPage()),
+      ),
+
+      /// ⬆️ Upload Material
+      GoRoute(
+        path: RouteNames.uploads,
+        pageBuilder: (context, state) {
+          final user = state.extra as UserEntity;
+          return buildSlideTransitionPage(
+            state: state,
+            beginOffset: const Offset(0, 0.1), // from bottom
+            child: UploadMaterialScreen(currentUser: user),
+          );
+        },
+      ),
+
+      /// ✅ Upload Success
+      GoRoute(
+        path: RouteNames.thankYou,
+        pageBuilder: (context, state) =>
+            buildSlideTransitionPage(state: state, child: const UploadSuccessScreen()),
+      ),
+
+      /// 📚 Course Details
+      GoRoute(
+        path: RouteNames.courseDetails,
+        name: RouteNames.courseDetails,
+        pageBuilder: (context, state) {
+          final course = state.extra as CourseModel;
+          return buildSlideTransitionPage(
+            state: state,
+            beginOffset: const Offset(0, 0.1),
+            child: CourseDetailsScreen(course: course),
+          );
+        },
+      ),
+
+      /// 🏠 Bottom Navigation Shell
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return Theme(
@@ -125,19 +177,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               bottomNavigationBar: BottomNavigationBar(
                 type: BottomNavigationBarType.fixed,
                 showSelectedLabels: false,
-                selectedItemColor: Color(0xFF1E3A8A),
-                unselectedItemColor: Color(0xFF1E3A8A).withValues(alpha: 0.7),
+                selectedItemColor: const Color(0xFF1E3A8A),
+                unselectedItemColor: const Color(0xFF1E3A8A).withValues(alpha: 0.7),
                 iconSize: 25,
                 currentIndex: navigationShell.currentIndex,
-                onTap: (index) {
-                  navigationShell.goBranch(index);
-                },
-            
+                onTap: (index) => navigationShell.goBranch(index),
                 items: const [
                   BottomNavigationBarItem(
-                  icon: Icon(FluentSystemIcons.ic_fluent_home_regular),
-                  activeIcon: Icon(FluentSystemIcons.ic_fluent_home_filled),
-                  label: 'HOME',
+                    icon: Icon(FluentSystemIcons.ic_fluent_home_regular),
+                    activeIcon: Icon(FluentSystemIcons.ic_fluent_home_filled),
+                    label: 'HOME',
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(FluentSystemIcons.ic_fluent_people_regular),
@@ -146,7 +195,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   ),
                   BottomNavigationBarItem(
                     icon: Icon(FluentSystemIcons.ic_fluent_book_formula_text_regular),
-                    activeIcon: Icon(FluentSystemIcons.ic_fluent_book_formula_text_filled),
+                    activeIcon:
+                        Icon(FluentSystemIcons.ic_fluent_book_formula_text_filled),
                     label: 'COURSES',
                   ),
                   BottomNavigationBarItem(
@@ -165,58 +215,63 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           );
         },
         branches: [
+          /// Home
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: RouteNames.home,
-                pageBuilder: (context, state) => CustomTransitionPage(
-                  key: state.pageKey,
+                pageBuilder: (context, state) => buildSlideTransitionPage(
+                  state: state,
+                  beginOffset: const Offset(-0.1, 0), // slide from left
                   child: const HomeScreen(),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    return SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(-0.1, 0),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: child,
-                    );
-                  },
                 ),
               ),
             ],
           ),
+          /// Connect
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: RouteNames.connect,
-                builder: (context, state) => const ConnectScreen(),
+                pageBuilder: (context, state) => buildSlideTransitionPage(
+                  state: state,
+                  child: const ConnectScreen(),
+                ),
               ),
             ],
           ),
+          /// Courses
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: RouteNames.courses,
-                builder: (context, state) => const CoursesScreen(
-                  department: 'Software Engineering',
-                  level: 500,
+                pageBuilder: (context, state) => buildSlideTransitionPage(
+                  state: state,
+                  child: const CoursesScreen(
+                    department: 'Software Engineering',
+                    level: 500,
+                  ),
                 ),
-              )
+              ),
             ],
           ),
+          /// AI
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: RouteNames.ai,
-                builder: (context, state) => const AiScreen(),
+                pageBuilder: (context, state) =>
+                    buildSlideTransitionPage(state: state, child: const AiScreen()),
               ),
             ],
           ),
+          /// Profile
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: RouteNames.me,
-                builder: (context, state) => const ProfileScreen(),
+                pageBuilder: (context, state) =>
+                    buildSlideTransitionPage(state: state, child: const ProfileScreen()),
               ),
             ],
           ),
@@ -224,6 +279,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
 
+    /// 🔁 Redirect logic (unchanged)
     redirect: (context, state) {
       final prefs = ref.read(sharedPrefsProvider);
       final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
@@ -233,17 +289,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final onAuthScreen = state.matchedLocation == RouteNames.auth;
       final onOtpScreen = state.matchedLocation == RouteNames.otp;
 
-      // First-time users → force onboarding
       if (!hasSeenOnboarding && !onOnboardingScreen) {
         return RouteNames.onboarding;
       }
 
-      // Returning users not logged in → go to auth
       if (hasSeenOnboarding && !loggedIn && !onAuthScreen && !onOtpScreen) {
         return RouteNames.auth;
       }
 
-      // Logged-in users on onboarding/auth → go home
       if (loggedIn && (onAuthScreen || onOnboardingScreen)) {
         return RouteNames.home;
       }
