@@ -47,16 +47,21 @@ class CourseCard extends StatelessWidget {
               courseCode,
               style: AppStyles.AppStyles.subStyle.copyWith(
                 fontSize: 24,
-                fontWeight: FontWeight.w500
+                fontWeight: FontWeight.w500,
+                height: 1.1,
               ),
             ),
-            Text(
-              courseName,
-              style: AppStyles.AppStyles.subStyle.copyWith(
-                fontWeight: FontWeight.w400
+            const SizedBox(height: 2),
+            Expanded(
+              child: Text(
+                courseName,
+                style: AppStyles.AppStyles.subStyle.copyWith(
+                  fontWeight: FontWeight.w400,
+                  height: 1.15,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

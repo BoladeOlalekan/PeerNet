@@ -2,7 +2,6 @@ import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:peer_net/base/media.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:peer_net/base/routing/route_names.dart';
 import 'package:peer_net/base/widgets/course/course_list.dart';
@@ -44,7 +43,6 @@ class HomeScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ======= Top Bar =======
                         Padding(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20.0,
@@ -54,8 +52,27 @@ class HomeScreen extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Image.asset(AppMedia.logo, scale: 4.8),
+                              Flexible(
+                                child: Text.rich(
+                                  TextSpan(
+                                    style: AppStyles.header1,
+                                    children: [
+                                      TextSpan(
+                                        text: 'Hello, ',
+                                        style: AppStyles.header1.copyWith(color: primary),
+                                      ),
+                                      TextSpan(
+                                        text: user?.nickname.trim().split(' ').last ?? 'User',
+                                        style: AppStyles.header1.copyWith(color: accent),
+                                      ),
+                                      const TextSpan(text: ' 👋'),
+                                    ],
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                               Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
                                     icon: const Icon(
@@ -89,30 +106,14 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ),
 
-                        const SizedBox(height: 15),
+                        const SizedBox(height: 5),
 
-                        // ======= Greeting & Department Info =======
+                        // ======= Department Info =======
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text.rich(
-                                TextSpan(
-                                  style: AppStyles.header1,
-                                  children: [
-                                    TextSpan(
-                                      text: 'Hello, ',
-                                      style: AppStyles.header1.copyWith(color: primary),
-                                    ),
-                                    TextSpan(
-                                      text: user?.nickname.trim().split(' ').last ?? 'User',
-                                      style: AppStyles.header1.copyWith(color: accent),
-                                    ),
-                                    const TextSpan(text: ' 👋'),
-                                  ],
-                                ),
-                              ),
                               const SizedBox(height: 10),
                               Container(
                                 width: double.infinity,

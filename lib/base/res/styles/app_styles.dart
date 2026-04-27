@@ -64,7 +64,7 @@ class AppStyles {
   );
 
   static TextStyle header1 = TextStyle(
-    fontSize: 36,
+    fontSize: 30,
     fontWeight: FontWeight.w500,
     color: subText,
     height: 1.2,
