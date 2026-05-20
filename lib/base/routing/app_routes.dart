@@ -24,7 +24,7 @@ import 'package:peer_net/features/PROFILE/user_uploads_screen.dart';
 import 'package:peer_net/main.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
 
-/// 🪄 Helper for smooth transitions
+/// Helper for smooth transitions
 CustomTransitionPage<dynamic> buildSlideTransitionPage({
   required GoRouterState state,
   required Widget child,
@@ -50,7 +50,7 @@ CustomTransitionPage<dynamic> buildSlideTransitionPage({
 }
 
 final goRouterProvider = Provider<GoRouter>((ref) {
-  final authRepository = ref.watch(authRepositoryProvider);
+  //final authRepository = ref.watch(authRepositoryProvider);
 
   return GoRouter(
     initialLocation: RouteNames.splash,
@@ -64,8 +64,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       /// 🟩 Onboarding
       GoRoute(
         path: RouteNames.onboarding,
-        pageBuilder: (context, state) =>
-            buildSlideTransitionPage(state: state, child: const OnboardingScreen()),
+        pageBuilder: (context, state) => buildSlideTransitionPage(
+          state: state,
+          child: const OnboardingScreen(),
+        ),
       ),
 
       /// 🟨 Auth
@@ -104,29 +106,37 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       /// 🟪 Edit Profile
       GoRoute(
         path: RouteNames.editProfile,
-        pageBuilder: (context, state) =>
-            buildSlideTransitionPage(state: state, child: const EditProfileScreen()),
+        pageBuilder: (context, state) => buildSlideTransitionPage(
+          state: state,
+          child: const EditProfileScreen(),
+        ),
       ),
 
       /// 🟦 Downloads
       GoRoute(
         path: RouteNames.downloads,
-        pageBuilder: (context, state) =>
-            buildSlideTransitionPage(state: state, child: const DownloadsScreen()),
+        pageBuilder: (context, state) => buildSlideTransitionPage(
+          state: state,
+          child: const DownloadsScreen(),
+        ),
       ),
 
       /// 🟨 My Uploads
       GoRoute(
         path: RouteNames.myUploads,
-        pageBuilder: (context, state) =>
-            buildSlideTransitionPage(state: state, child: const UserUploadsScreen()),
+        pageBuilder: (context, state) => buildSlideTransitionPage(
+          state: state,
+          child: const UserUploadsScreen(),
+        ),
       ),
 
       /// 🔔 Notifications
       GoRoute(
         path: RouteNames.notifications,
-        pageBuilder: (context, state) =>
-            buildSlideTransitionPage(state: state, child: const NotificationPage()),
+        pageBuilder: (context, state) => buildSlideTransitionPage(
+          state: state,
+          child: const NotificationPage(),
+        ),
       ),
 
       /// ⬆️ Upload Material
@@ -145,8 +155,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       /// ✅ Upload Success
       GoRoute(
         path: RouteNames.thankYou,
-        pageBuilder: (context, state) =>
-            buildSlideTransitionPage(state: state, child: const UploadSuccessScreen()),
+        pageBuilder: (context, state) => buildSlideTransitionPage(
+          state: state,
+          child: const UploadSuccessScreen(),
+        ),
       ),
 
       /// 📚 Course Details
@@ -178,7 +190,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 type: BottomNavigationBarType.fixed,
                 showSelectedLabels: false,
                 selectedItemColor: const Color(0xFF1E3A8A),
-                unselectedItemColor: const Color(0xFF1E3A8A).withValues(alpha: 0.7),
+                unselectedItemColor: const Color(
+                  0xFF1E3A8A,
+                ).withValues(alpha: 0.7),
                 iconSize: 25,
                 currentIndex: navigationShell.currentIndex,
                 onTap: (index) => navigationShell.goBranch(index),
@@ -194,9 +208,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     label: 'CONNECT',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(FluentSystemIcons.ic_fluent_book_formula_text_regular),
-                    activeIcon:
-                        Icon(FluentSystemIcons.ic_fluent_book_formula_text_filled),
+                    icon: Icon(
+                      FluentSystemIcons.ic_fluent_book_formula_text_regular,
+                    ),
+                    activeIcon: Icon(
+                      FluentSystemIcons.ic_fluent_book_formula_text_filled,
+                    ),
                     label: 'COURSES',
                   ),
                   BottomNavigationBarItem(
@@ -228,6 +245,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+
           /// Connect
           StatefulShellBranch(
             routes: [
@@ -240,6 +258,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+
           /// Courses
           StatefulShellBranch(
             routes: [
@@ -255,23 +274,29 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+
           /// AI
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: RouteNames.ai,
-                pageBuilder: (context, state) =>
-                    buildSlideTransitionPage(state: state, child: const AiScreen()),
+                pageBuilder: (context, state) => buildSlideTransitionPage(
+                  state: state,
+                  child: const AiScreen(),
+                ),
               ),
             ],
           ),
+
           /// Profile
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: RouteNames.me,
-                pageBuilder: (context, state) =>
-                    buildSlideTransitionPage(state: state, child: const ProfileScreen()),
+                pageBuilder: (context, state) => buildSlideTransitionPage(
+                  state: state,
+                  child: const ProfileScreen(),
+                ),
               ),
             ],
           ),
@@ -282,12 +307,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     /// 🔁 Redirect logic (unchanged)
     redirect: (context, state) {
       final prefs = ref.read(sharedPrefsProvider);
+      final authRepository = ref.watch(authRepositoryProvider);
+
       final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
       final loggedIn = authRepository.isLoggedIn;
 
       final onOnboardingScreen = state.matchedLocation == RouteNames.onboarding;
       final onAuthScreen = state.matchedLocation == RouteNames.auth;
       final onOtpScreen = state.matchedLocation == RouteNames.otp;
+      final onSplashScreen = state.matchedLocation == RouteNames.splash;
+
+      if (onSplashScreen) {
+        return null; // Splash screen handles its own timed transition
+      }
 
       if (!hasSeenOnboarding && !onOnboardingScreen) {
         return RouteNames.onboarding;

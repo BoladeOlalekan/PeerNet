@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:peer_net/features/COURSES/models/course_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -14,15 +15,27 @@ Future<List<CourseModel>> fetchCourses({
         .select()
         .ilike('department', department)
         .eq('level', level)
-        .eq('semester', semester);
+        .eq('semester', semester)
+        .timeout(const Duration(seconds: 10));
 
     print("DEBUG: Supabase response = $response");
 
     final data = response as List;
     return data.map((json) => CourseModel.fromJson(json)).toList();
+  } on TimeoutException catch (_) {
+    throw Exception('Connection timed out. Please check your internet connectivity.');
   } catch (e, st) {
     print("ERROR: $e\n$st");
-    throw Exception('Failed to fetch courses: $e');
+    final errorStr = e.toString().toLowerCase();
+    if (errorStr.contains('socketexception') ||
+        errorStr.contains('handshake') ||
+        errorStr.contains('connection failed') ||
+        errorStr.contains('network') ||
+        errorStr.contains('failed host lookup') ||
+        errorStr.contains('network_error')) {
+      throw Exception('No internet connection. Please check your network settings.');
+    }
+    throw Exception('Failed to fetch courses. Please try again.');
   }
 }
 
@@ -39,13 +52,24 @@ Future<List<CourseModel>> fetchRandomCourses({
         'p_level': level,
         'p_count': count,
       },
-    );
+    ).timeout(const Duration(seconds: 10));
 
     if (response == null) return [];
     final data = response as List<dynamic>;
     return data.map((json) => CourseModel.fromJson(json as Map<String, dynamic>)).toList();
+  } on TimeoutException catch (_) {
+    throw Exception('Connection timed out. Please check your internet connectivity.');
   } catch (e) {
-    throw Exception('Failed to fetch random courses: $e');
+    final errorStr = e.toString().toLowerCase();
+    if (errorStr.contains('socketexception') ||
+        errorStr.contains('handshake') ||
+        errorStr.contains('connection failed') ||
+        errorStr.contains('network') ||
+        errorStr.contains('failed host lookup') ||
+        errorStr.contains('network_error')) {
+      throw Exception('No internet connection. Please check your network settings.');
+    }
+    throw Exception('Failed to fetch random courses. Please try again.');
   }
 }
 

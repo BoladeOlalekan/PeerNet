@@ -23,18 +23,39 @@ void main() async {
 
   await dotenv.load(fileName: ".env");
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // await Firebase.initializeApp(
+  //   options: DefaultFirebaseOptions.currentPlatform,
+  // );
 
-  await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL']!,
-    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
-  );
+  // await Supabase.initialize(
+  //   url: dotenv.env['SUPABASE_URL']!,
+  //   anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+  // );
 
-  final prefs = await SharedPreferences.getInstance();
+  // final prefs = await SharedPreferences.getInstance();
 
-  // Init notifications
+  // // Init notifications
+  // final notificationService = NotificationService();
+  // await notificationService.initialize();
+
+  // SystemChrome.setSystemUIOverlayStyle(
+  //   const SystemUiOverlayStyle(
+  //     statusBarColor: Colors.transparent,
+  //     statusBarIconBrightness: Brightness.light,
+  //   ),
+  // );
+
+  final initResults = await Future.wait([
+    Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+    Supabase.initialize(
+      url: dotenv.env['SUPABASE_URL']!,
+      anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+    ),
+    SharedPreferences.getInstance(),
+  ]);
+
+  final prefs = initResults[2] as SharedPreferences;
+
   final notificationService = NotificationService();
   await notificationService.initialize();
 

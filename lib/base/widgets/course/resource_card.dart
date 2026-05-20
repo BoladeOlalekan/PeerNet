@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:peer_net/services/download_service.dart' as ds;
@@ -39,15 +40,17 @@ class _ResourceCardState extends State<ResourceCard> {
 
   Future<void> _checkIfDownloaded() async {
     final downloads = await ds.DownloadService.getAllDownloads();
-    final exists = downloads.any((d) =>
-      d.originalUrl == widget.downloadUrl ||
-      d.fileName == widget.fileName);
+    final exists = downloads.any(
+      (d) =>
+          d.originalUrl == widget.downloadUrl || d.fileName == widget.fileName,
+    );
     if (mounted) setState(() => _isDownloaded = exists);
   }
 
   Future<Map<String, String?>> _fetchMetadata() async {
     try {
-      if (widget.downloadUrl.isEmpty) return {'size': null, 'content-type': null};
+      if (widget.downloadUrl.isEmpty)
+        return {'size': null, 'content-type': null};
       final uri = Uri.parse(widget.downloadUrl);
       final res = await http.head(uri);
       final contentType = res.headers['content-type'];
@@ -110,12 +113,11 @@ class _ResourceCardState extends State<ResourceCard> {
     return null;
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 1,
-      margin:  EdgeInsets.all(8),
+      margin: EdgeInsets.all(8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -123,7 +125,7 @@ class _ResourceCardState extends State<ResourceCard> {
           // Preview area
           Expanded(
             child: ClipRRect(
-              borderRadius:  BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
               child: FutureBuilder<Map<String, String?>>(
                 future: _metaFuture,
                 builder: (context, snap) {
@@ -133,7 +135,9 @@ class _ResourceCardState extends State<ResourceCard> {
                   // ✅ Handle YouTube thumbnails
                   if (widget.youtubeUrl.isNotEmpty) {
                     final thumbnail = _getYoutubeThumbnail(widget.youtubeUrl);
-                    print('DEBUG: youtubeUrl=${widget.youtubeUrl}, thumbnail=$thumbnail');
+                    print(
+                      'DEBUG: youtubeUrl=${widget.youtubeUrl}, thumbnail=$thumbnail',
+                    );
                     return Stack(
                       fit: StackFit.expand,
                       children: [
@@ -143,9 +147,9 @@ class _ResourceCardState extends State<ResourceCard> {
                           Container(color: Colors.black12),
                         Center(
                           child: IconButton(
-                            icon:  Icon(
+                            icon: Icon(
                               FluentSystemIcons.ic_fluent_video_clip_regular,
-                              size: 50
+                              size: 50,
                             ),
                             color: AppStyles.accentColor,
                             onPressed: () async {
@@ -157,7 +161,9 @@ class _ResourceCardState extends State<ResourceCard> {
                                 );
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Could not open YouTube')),
+                                  const SnackBar(
+                                    content: Text('Could not open YouTube'),
+                                  ),
                                 );
                               }
                             },
@@ -170,11 +176,11 @@ class _ResourceCardState extends State<ResourceCard> {
                   if (_isImage(mime)) {
                     if (widget.downloadUrl.isEmpty) {
                       return Container(
-                        color: Colors.grey[100], 
-                        child:  Icon(
-                          FluentSystemIcons.ic_fluent_image_regular, 
-                          size: 48
-                        )
+                        color: Colors.grey[100],
+                        child: Icon(
+                          FluentSystemIcons.ic_fluent_image_regular,
+                          size: 48,
+                        ),
                       );
                     }
                     return Image.network(
@@ -182,12 +188,16 @@ class _ResourceCardState extends State<ResourceCard> {
                       fit: BoxFit.cover,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
-                        return  Center(child: CircularProgressIndicator());
+                        return Center(child: CircularProgressIndicator());
                       },
                       errorBuilder: (context, error, stack) => Container(
                         color: Colors.grey[100],
                         child: Center(
-                          child: Icon(_getFluentIconForType(mime), size: 48, color: AppStyles.primaryColor),
+                          child: Icon(
+                            _getFluentIconForType(mime),
+                            size: 48,
+                            color: AppStyles.primaryColor,
+                          ),
                         ),
                       ),
                     );
@@ -195,7 +205,9 @@ class _ResourceCardState extends State<ResourceCard> {
 
                   // non-image preview: icon + extension label
                   final icon = _getFluentIconForType(mime);
-                  final ext = widget.fileName.contains('.') ? widget.fileName.split('.').last.toUpperCase() : '';
+                  final ext = widget.fileName.contains('.')
+                      ? widget.fileName.split('.').last.toUpperCase()
+                      : '';
                   return Container(
                     color: AppStyles.accentColor.withValues(alpha: 0.06),
                     child: Center(
@@ -203,8 +215,17 @@ class _ResourceCardState extends State<ResourceCard> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(icon, size: 44, color: AppStyles.accentColor),
-                          if (ext.isNotEmpty)  SizedBox(height: 8),
-                          if (ext.isNotEmpty) Text(ext, style: TextStyle(color: AppStyles.accentColor.withValues(alpha: 0.9), fontWeight: FontWeight.w600)),
+                          if (ext.isNotEmpty) SizedBox(height: 8),
+                          if (ext.isNotEmpty)
+                            Text(
+                              ext,
+                              style: TextStyle(
+                                color: AppStyles.accentColor.withValues(
+                                  alpha: 0.9,
+                                ),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -214,94 +235,113 @@ class _ResourceCardState extends State<ResourceCard> {
             ),
           ),
 
-          // Footer with name and actions and download progress
-          if (_isDownloading && _progress != null)
-          LinearProgressIndicator(
-            value: _progress,
-            minHeight: 4,
-            backgroundColor: Colors.grey.shade300,
-            color: AppStyles.accentColor,
-          ),
-
+          // Modern details area
           Padding(
-            padding:  EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.fileName.toUpperCase(),
+                  widget.fileName,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: AppStyles.subStyle.copyWith(fontWeight: FontWeight.w400),
-                ),
-
-                // 👇 Only show size and actions if NOT a YouTube video
-                if (!(widget.fileType == 'video' && widget.youtubeUrl.isNotEmpty)) ...[
-                  FutureBuilder<Map<String, String?>>(
-                    future: _metaFuture,
-                    builder: (context, snap) {
-                      final sizeStr = _readableSize(snap.data?['size']);
-                      return Text('Size: $sizeStr');
-                    },
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    height: 1.2,
                   ),
-                  
-                  SizedBox(height: 8),
-                  
+                ),
+                if (!(widget.fileType == 'video' &&
+                    widget.youtubeUrl.isNotEmpty)) ...[
+                  const SizedBox(height: 8),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      IconButton(
-                        icon: Icon(FluentSystemIcons.ic_fluent_info_regular),
-                        color: AppStyles.accentColor,
-                        onPressed: () async {
-                          final meta = await _metaFuture;
-                          final size = _readableSize(meta['size']);
-                          final type = meta['content-type'] ?? widget.fileType;
-                          showDialog(
-                            context: context,
-                            builder: (dialogContext) => AlertDialog(
-                              title:  Text('File info'),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                      Expanded(
+                        child: FutureBuilder<Map<String, String?>>(
+                          future: _metaFuture,
+                          builder: (context, snap) {
+                            final ext = widget.fileName.contains('.')
+                                ? widget.fileName.split('.').last.toUpperCase()
+                                : widget.fileType.toUpperCase();
+
+                            if (snap.connectionState == ConnectionState.waiting) {
+                              return Row(
                                 children: [
-                                  Text('Name: ${widget.fileName}'),
-                                   SizedBox(height: 6),
-                                  Text('Type: $type'),
-                                   SizedBox(height: 6),
-                                  Text('Size: $size'),
+                                  Shimmer.fromColors(
+                                    baseColor: Colors.grey.shade200,
+                                    highlightColor: Colors.grey.shade50,
+                                    child: Container(
+                                      width: 40,
+                                      height: 12,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    ' • $ext',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ],
+                              );
+                            }
+
+                            final sizeStr = _readableSize(snap.data?['size']);
+                            return Text(
+                              '$sizeStr • $ext',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey,
+                                fontWeight: FontWeight.w500,
                               ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(dialogContext).pop(),
-                                  child:  Text('Close'),
-                                )
-                              ],
-                            ),
-                          );
-                        },
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            );
+                          },
+                        ),
                       ),
 
-                      //Check icon if downloaded
-                      _isDownloaded
-                          ? Icon(
-                              FluentSystemIcons.ic_fluent_checkmark_circle_filled,
-                              color: AppStyles.accentColor,
-                              size: 26,
-                            )
-                          : IconButton(
-                              icon:  Icon(FluentSystemIcons.ic_fluent_arrow_download_regular),
-                              color: AppStyles.accentColor,
-                              onPressed: () async {
-                                if (widget.downloadUrl.isEmpty) return;
-                                setState(() {
-                                  _isDownloading = true;
-                                  _progress = 0.0;
-                                });
+                      // Download button / Progress
+                      if (_isDownloading)
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              CircularProgressIndicator(
+                                value: _progress,
+                                strokeWidth: 2.5,
+                                color: AppStyles.primaryColor,
+                                backgroundColor: AppStyles.inputBorder,
+                              ),
+                            ],
+                          ),
+                        )
+                      else if (_isDownloaded)
+                        Icon(
+                          FluentSystemIcons.ic_fluent_checkmark_circle_filled,
+                          color: AppStyles.primaryColor,
+                          size: 24,
+                        )
+                      else
+                        GestureDetector(
+                          onTap: () async {
+                            if (widget.downloadUrl.isEmpty) return;
+                            setState(() {
+                              _isDownloading = true;
+                              _progress = 0.0;
+                            });
 
-                                try {
-                                  final resource = await ds.DownloadService.downloadResource(
+                            try {
+                              final resource =
+                                  await ds.DownloadService.downloadResource(
                                     url: widget.downloadUrl,
                                     fileName: widget.fileName,
                                     fileType: widget.fileType,
@@ -310,32 +350,134 @@ class _ResourceCardState extends State<ResourceCard> {
                                     },
                                   );
 
-                                  setState(() {
-                                    _isDownloading = false;
-                                    _progress = null;
-                                    _isDownloaded = true; // ✅ Refresh after download
-                                  });
+                              setState(() {
+                                _isDownloading = false;
+                                _progress = null;
+                                _isDownloaded = true;
+                              });
 
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Downloaded: ${resource.fileName}')),
-                                  );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Downloaded: ${resource.fileName}',
+                                  ),
+                                ),
+                              );
 
-                                  await OpenFilex.open(resource.localPath);
-                                } catch (e) {
-                                  setState(() {
-                                    _isDownloading = false;
-                                    _progress = null;
-                                  });
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                     SnackBar(content: Text('Download failed')),
-                                  );
-                                }
-                              },
+                              await OpenFilex.open(resource.localPath);
+                            } catch (e) {
+                              setState(() {
+                                _isDownloading = false;
+                                _progress = null;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Download failed'),
+                                ),
+                              );
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppStyles.primaryColor.withValues(
+                                alpha: 0.1,
+                              ),
+                              shape: BoxShape.circle,
                             ),
+                            child: Icon(
+                              FluentSystemIcons
+                                  .ic_fluent_arrow_download_regular,
+                              size: 16,
+                              color: AppStyles.primaryColor,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ],
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ResourceCardSkeleton extends StatelessWidget {
+  const ResourceCardSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 1,
+      margin: const EdgeInsets.all(8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey.shade200,
+              highlightColor: Colors.grey.shade50,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Shimmer.fromColors(
+              baseColor: Colors.grey.shade200,
+              highlightColor: Colors.grey.shade50,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    width: 80,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],

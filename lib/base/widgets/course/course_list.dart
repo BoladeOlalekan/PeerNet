@@ -30,6 +30,8 @@ class CourseList extends StatelessWidget {
               itemBuilder: (context, index) {
                 final course = courses[index];
                 return CourseCard(
+                  width: 160,
+                  margin: const EdgeInsets.only(right: 16, bottom: 8, top: 4),
                   onTap: () => onCourseTap(course), 
                   courseCode: course.courseCode, 
                   courseName: course.courseName,

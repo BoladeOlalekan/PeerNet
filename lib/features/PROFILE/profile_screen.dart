@@ -10,6 +10,7 @@ import 'package:peer_net/features/AUTH/application/auth_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authRepository = ref.watch(authRepositoryProvider);
@@ -17,18 +18,19 @@ class ProfileScreen extends ConsumerWidget {
     final user = authState.user.value;
 
     return Scaffold(
+      backgroundColor: AppStyles.backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     "Profile",
-                    style: AppStyles.header1.copyWith(color: primary),
+                    style: AppStyles.pageTitle.copyWith(fontSize: 32),
                   ),
                 ],
               ),
@@ -36,141 +38,245 @@ class ProfileScreen extends ConsumerWidget {
 
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 40),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // User Info
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundImage: (user?.avatarUrl ?? '').isNotEmpty
-                            ? CachedNetworkImageProvider(user!.avatarUrl!)
-                            : NetworkImage(
-                              "https://lh3.googleusercontent.com/aida-public/AB6AXuAtUmPCV6_iCOw7mfIDLIbHfyRdhGLNhWrGUWwKzn10lTqztThDu-icL7IiAM75CLZHodix_8vcv77mkcS22DlZWH3GF6agpNnWFM56lErAWXkkILztdTCEadhGWfSyRkAgXp33mRtDq_uYzSceLJmsJ3TLKmiIBQzsfUQ-F9bI4u5iIkhyMDqiQ8_PQL8-B_pBDgmUKDDusHVyuvibsO9n39azqEzIskQ-uQ7T_N_gAEI9eacxj6NEdq_P0AVrkN-GoZpx7C7CZmQ",
-                            ) as ImageProvider,
+                    // ======= User Info Card =======
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppStyles.primaryColor,
+                            AppStyles.primaryColor.withValues(alpha: 0.85),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text.rich(
-                                textAlign: TextAlign.right,
-                                TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text:'${user?.name ?? "User"}\n',
-                                      style: AppStyles.profileName
-                                    ),
-                                    TextSpan(
-                                      text: user?.email ?? "",
-                                      style: AppStyles.profileMail,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              
-                              SizedBox(height: 8),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: TextButton.icon(
-                                  style: AppStyles.editProfileButton,
-                                  onPressed: () {
-                                    context.push(RouteNames.editProfile);
-                                  },
-                                  icon: Icon(
-                                    FluentSystemIcons.ic_fluent_edit_filled,
-                                    size: 16, 
-                                    color: AppStyles.borderText
-                                  ),
-                                  label: Text(
-                                    "Edit Profile",
-                                    style: AppStyles.editText,
-                                  ),
-                                ),
-                              ),
-                            ],
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppStyles.primaryColor.withValues(
+                              alpha: 0.3,
+                            ),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
                           ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: CircleAvatar(
+                              radius: 40,
+                              backgroundImage:
+                                  (user?.avatarUrl ?? '').isNotEmpty
+                                  ? CachedNetworkImageProvider(user!.avatarUrl!)
+                                  : const NetworkImage(
+                                          "https://lh3.googleusercontent.com/aida-public/AB6AXuAtUmPCV6_iCOw7mfIDLIbHfyRdhGLNhWrGUWwKzn10lTqztThDu-icL7IiAM75CLZHodix_8vcv77mkcS22DlZWH3GF6agpNnWFM56lErAWXkkILztdTCEadhGWfSyRkAgXp33mRtDq_uYzSceLJmsJ3TLKmiIBQzsfUQ-F9bI4u5iIkhyMDqiQ8_PQL8-B_pBDgmUKDDusHVyuvibsO9n39azqEzIskQ-uQ7T_N_gAEI9eacxj6NEdq_P0AVrkN-GoZpx7C7CZmQ",
+                                        )
+                                        as ImageProvider,
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  user?.name ?? "User",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  user?.email ?? "",
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                GestureDetector(
+                                  onTap: () =>
+                                      context.push(RouteNames.editProfile),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          FluentSystemIcons
+                                              .ic_fluent_edit_regular,
+                                          color: Colors.white,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Text(
+                                          "Edit Profile",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 36),
+
+                    // ======= Content =======
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8, bottom: 12),
+                      child: Text(
+                        "CONTENT",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppStyles.mutedText,
+                          letterSpacing: 1.2,
                         ),
-                      ],
+                      ),
                     ),
+                    _buildMenuGroup([
+                      _ActionItemData(
+                        icon: FluentSystemIcons.ic_fluent_cloud_backup_regular,
+                        label: "My Uploads",
+                        onTap: () => context.push(RouteNames.myUploads),
+                      ),
+                      _ActionItemData(
+                        icon:
+                            FluentSystemIcons.ic_fluent_arrow_download_regular,
+                        label: "Downloads",
+                        onTap: () => context.push(RouteNames.downloads),
+                      ),
+                    ]),
 
-                    SizedBox(height: 32),
+                    const SizedBox(height: 28),
 
-                    // Action Items
-                    _buildActionItem(
-                      context,
-                      icon: FluentSystemIcons.ic_fluent_upload_filled,
-                      label: "My Uploads",
-                      color: AppStyles.accentColor,
-                      onTap: () {
-                        context.push(RouteNames.myUploads);
-                      },
+                    // ======= Preferences =======
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8, bottom: 12),
+                      child: Text(
+                        "PREFERENCES",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppStyles.mutedText,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
                     ),
-                    _buildActionItem(
-                      context,
-                      icon:   FluentSystemIcons.ic_fluent_cloud_download_filled,
-                      label: "Downloads",
-                      color:  AppStyles.accentColor,
-                      onTap: () {
-                        context.push(RouteNames.downloads);
-                      },
+                    _buildMenuGroup([
+                      _ActionItemData(
+                        icon: FluentSystemIcons.ic_fluent_shield_regular,
+                        label: "Privacy Settings",
+                        onTap: () {},
+                      ),
+                    ]),
+
+                    const SizedBox(height: 28),
+
+                    // ======= Account =======
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8, bottom: 12),
+                      child: Text(
+                        "ACCOUNT",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppStyles.mutedText,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
                     ),
-                    _buildActionItem(
-                      context,
-                      icon: FluentSystemIcons.ic_fluent_shield_filled,
-                      label: "Privacy Settings",
-                      color:  AppStyles.accentColor,
-                      onTap: () {},
-                    ),
-                    _buildActionItem(
-                      context,
-                      icon: FluentSystemIcons.ic_fluent_delete_filled,
-                      label: "Delete Account",
-                      color: Colors.red,
-                      onTap: () {},
-                      isDestructive: true,
-                    ),
-                    _buildActionItem(
-                      context,
-                      icon: FluentSystemIcons.ic_fluent_sign_out_filled,
-                      label: "Log Out",
-                      color: Colors.red,
-                      onTap: () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Sign Out'),
-                            content: const Text('Are you sure you want to sign out?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: const Text('Cancel'),
+                    _buildMenuGroup([
+                      _ActionItemData(
+                        icon: FluentSystemIcons.ic_fluent_sign_out_regular,
+                        label: "Log Out",
+                        onTap: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
                               ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, true),
-                                child: const Text('Sign Out'),
+                              title: const Text(
+                                'Sign Out',
+                                style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                            ],
-                          ),
-                        );
+                              content: const Text(
+                                'Are you sure you want to sign out?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                FilledButton(
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                  ),
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Sign Out'),
+                                ),
+                              ],
+                            ),
+                          );
 
-                        if (confirm == true) {
-                          await authRepository.signOut();
-                          if(context.mounted) {
-                            context.go(
-                              RouteNames.auth,
-                              extra: {'showSignUp': false},
-                            );
+                          if (confirm == true) {
+                            await authRepository.signOut();
+                            if (context.mounted) {
+                              context.go(
+                                RouteNames.auth,
+                                extra: {'showSignUp': false},
+                              );
+                            }
                           }
-                        }
-                      },
-                      isDestructive: true,
-                      showDivider: false,
-                    ),
+                        },
+                        isDestructive: true,
+                      ),
+                      _ActionItemData(
+                        icon: FluentSystemIcons.ic_fluent_delete_regular,
+                        label: "Delete Account",
+                        onTap: () {},
+                        isDestructive: true,
+                      ),
+                    ]),
                   ],
                 ),
               ),
@@ -181,48 +287,102 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildActionItem(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-    bool isDestructive = false,
-    bool showDivider = true,
-  }) {
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
-            child: Row(
-              children: [
-                Icon(icon, color: color),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isDestructive
-                          ? Colors.red
-                          : (Colors.black87),
-                    ),
+  Widget _buildMenuGroup(List<_ActionItemData> items) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppStyles.inputBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
+          final isLast = index == items.length - 1;
+
+          return Column(
+            children: [
+              InkWell(
+                onTap: item.onTap,
+                borderRadius: BorderRadius.vertical(
+                  top: index == 0 ? const Radius.circular(24) : Radius.zero,
+                  bottom: isLast ? const Radius.circular(24) : Radius.zero,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: item.isDestructive
+                              ? Colors.red.withValues(alpha: 0.1)
+                              : AppStyles.accentColor.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          item.icon,
+                          size: 20,
+                          color: item.isDestructive
+                              ? Colors.red
+                              : AppStyles.accentColor,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          item.label,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: item.isDestructive
+                                ? Colors.red
+                                : AppStyles.headingColor,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        FluentSystemIcons.ic_fluent_chevron_right_regular,
+                        size: 20,
+                        color: Colors.grey.shade400,
+                      ),
+                    ],
                   ),
                 ),
-                Icon(Icons.chevron_right,
-                    color:Colors.grey[400]),
-              ],
-            ),
-          ),
-        ),
-        if (showDivider)
-          Divider(
-            height: 1,
-            color:   Colors.grey[300],
-          ),
-      ],
+              ),
+              if (!isLast)
+                Padding(
+                  padding: const EdgeInsets.only(left: 60, right: 20),
+                  child: Divider(height: 1, color: Colors.grey.shade200),
+                ),
+            ],
+          );
+        }).toList(),
+      ),
     );
   }
+}
+
+class _ActionItemData {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool isDestructive;
+
+  _ActionItemData({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.isDestructive = false,
+  });
 }

@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:peer_net/base/routing/route_names.dart';
 import 'package:peer_net/base/widgets/course/course_card.dart';
+import 'package:peer_net/base/widgets/course/course_card_skeleton.dart';
 import 'package:peer_net/features/COURSES/application/course_provider.dart';
+import 'package:peer_net/base/widgets/network_error_widget.dart';
 
 class CoursesScreen extends ConsumerStatefulWidget {
   final String department;
@@ -21,15 +23,28 @@ class CoursesScreen extends ConsumerStatefulWidget {
 }
 
 class _CoursesScreenState extends ConsumerState<CoursesScreen>
-  with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  int selectedLevel = 0;
+  late int selectedLevel;
+
+  // ✅ The critical fix to prevent StatefulShellRoute initialization crashes
+  bool _isReady = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     selectedLevel = widget.level;
+
+    // ✅ Defer heavy UI and data fetching until after the first frame renders.
+    // This allows the app to boot instantly without choking the emulator CPU.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _isReady = true;
+        });
+      }
+    });
   }
 
   @override
@@ -39,6 +54,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
   }
 
   void _changeLevel(int newLevel) {
+    if (selectedLevel == newLevel) return; // Prevent unnecessary rebuilds
     setState(() {
       selectedLevel = newLevel;
       _tabController.index = 0;
@@ -47,106 +63,92 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
-
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.only(
-          left: 20,
-          right: 20,
-          bottom: 10,
-          top: 50,
-        ),
+      backgroundColor: AppStyles.backgroundColor,
+      body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
-            Text(
-              "Courses",
-              style: AppStyles.header1.copyWith(color: primary),
-            ),
-
-            // Semester Tabs
-            TabBar(
-              controller: _tabController,
-              labelColor: primary,
-              unselectedLabelColor: Colors.black54,
-              indicatorColor: primary,
-              tabs: const [
-                Tab(text: "First Semester"),
-                Tab(text: "Second Semester"),
-              ],
-            ),
-
-            SizedBox(height: 10),
-
-            // Level + Department Label
-            Text(
-              "$selectedLevel Level - ${widget.department}",
-              style: AppStyles.doubleText1,
-            ),
-
-            SizedBox(height: 5),
-
-            // Tab Contents
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
+            // ======= Header =======
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _CourseListBuilder(
-                    department: widget.department,
-                    level: selectedLevel,
-                    semester: "First",
+                  Text(
+                    "Courses",
+                    style: AppStyles.pageTitle.copyWith(fontSize: 32),
                   ),
-                  _CourseListBuilder(
-                    department: widget.department,
-                    level: selectedLevel,
-                    semester: "Second",
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppStyles.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      widget.department,
+                      style: AppStyles.formLabelStyle.copyWith(
+                        color: AppStyles.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 20),
-
-            // Other Levels Section
-            Text(
-              "Other Levels",
-              style: AppStyles.doubleText1,
-            ),
-
+            // ======= Level Selector =======
             SizedBox(
-              height: size.height * 0.1,
+              height: 48,
               child: ListView(
                 scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 children: [100, 200, 300, 400, 500].map((lvl) {
                   final isSelected = selectedLevel == lvl;
                   return GestureDetector(
                     onTap: () => _changeLevel(lvl),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16, 
-                        vertical: 10
-                      ),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      margin: const EdgeInsets.only(right: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       decoration: BoxDecoration(
                         color: isSelected
-                          ? AppStyles.primaryColor.withValues(alpha: .9)
-                          : AppStyles.accentColor.withValues(alpha: .1),
-                          borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black87.withValues(alpha: 0.05),
-                            blurRadius: 4,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
+                            ? AppStyles.primaryColor
+                            : AppStyles.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppStyles.primaryColor
+                              : AppStyles.inputBorder,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: AppStyles.primaryColor.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ]
+                            : [],
                       ),
                       child: Center(
                         child: Text(
-                          "$lvl Level",
+                          "$lvl Lvl",
                           style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black87,
+                            color: isSelected
+                                ? AppStyles.white
+                                : AppStyles.headingColor,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                            fontSize: 14,
                           ),
                         ),
                       ),
@@ -154,6 +156,66 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
                   );
                 }).toList(),
               ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // ======= Semester Tabs =======
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppStyles.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppStyles.inputBorder),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: AppStyles.white,
+                  unselectedLabelColor: AppStyles.labelText,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent, // remove bottom border
+                  indicator: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    color: AppStyles.accentColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppStyles.accentColor.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  tabs: const [
+                    Tab(text: "First Semester"),
+                    Tab(text: "Second Semester"),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ======= Tab Contents =======
+            Expanded(
+              child: !_isReady
+                  ? const _CourseGridSkeleton()
+                  : TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _CourseListBuilder(
+                          department: widget.department,
+                          level: selectedLevel,
+                          semester: "First",
+                        ),
+                        _CourseListBuilder(
+                          department: widget.department,
+                          level: selectedLevel,
+                          semester: "Second",
+                        ),
+                      ],
+                    ),
             ),
           ],
         ),
@@ -176,44 +238,84 @@ class _CourseListBuilder extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncCourses = ref.watch(coursesProvider(CourseParams(department, level, semester)));
+    // This will only trigger AFTER _isReady becomes true in the parent widget
+    final asyncCourses = ref.watch(
+      coursesProvider(CourseParams(department, level, semester)),
+    );
+
+    if (asyncCourses.isLoading) {
+      return const _CourseGridSkeleton();
+    }
 
     return asyncCourses.when(
       data: (courses) {
         if (courses.isEmpty) {
-          return const Center(
-            child: Text("No courses found for this level/semester.")
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.folder_off_outlined,
+                  size: 48,
+                  color: Colors.grey.shade400,
+                ),
+                const SizedBox(height: 16),
+                const Text("No courses found for this semester."),
+              ],
+            ),
           );
         }
+
         return GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          physics: const BouncingScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: 10.0,
-            mainAxisSpacing: 15.0,
-            childAspectRatio: 0.9,
+            crossAxisSpacing: 16.0,
+            mainAxisSpacing: 16.0,
+            childAspectRatio: 0.85,
           ),
           itemCount: courses.length,
-          padding: EdgeInsets.all(10.0),
-
+          padding: const EdgeInsets.fromLTRB(24, 10, 24, 20),
           itemBuilder: (context, index) {
             final course = courses[index];
 
             return CourseCard(
               onTap: () {
-                context.push(
-                  RouteNames.courseDetails,
-                  extra: course,
-                );
+                context.pushNamed(RouteNames.courseDetails, extra: course);
               },
-              courseCode: course.courseCode, 
+              courseCode: course.courseCode,
               courseName: course.courseName,
             );
           },
         );
-
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, st) => Center(child: Text("Error: $e")),
+      loading: () => const _CourseGridSkeleton(),
+      error: (e, st) => NetworkErrorWidget(
+        message: e.toString().replaceAll('Exception: ', ''),
+        onRetry: () => ref.invalidate(
+          coursesProvider(CourseParams(department, level, semester)),
+        ),
+      ),
+    );
+  }
+}
+
+class _CourseGridSkeleton extends StatelessWidget {
+  const _CourseGridSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16.0,
+        mainAxisSpacing: 16.0,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: 6,
+      padding: const EdgeInsets.fromLTRB(24, 10, 24, 20),
+      itemBuilder: (context, index) => const CourseCardSkeleton(),
     );
   }
 }

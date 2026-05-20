@@ -1,67 +1,79 @@
 import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:peer_net/base/res/styles/app_styles.dart' as AppStyles;
+import 'package:peer_net/base/res/styles/app_styles.dart';
 
 class CourseCard extends StatelessWidget {
   final String courseCode;
   final String courseName;
   final VoidCallback onTap;
 
+  final double? width;
+  final EdgeInsetsGeometry? margin;
+
   const CourseCard({
     super.key,
-    required this.onTap, 
-    required this.courseCode, 
+    required this.onTap,
+    required this.courseCode,
     required this.courseName,
+    this.width,
+    this.margin,
   });
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: size.width * 0.4,
-        margin: const EdgeInsets.only(right: 15),
-        padding: const EdgeInsets.all(12),
+        width: width,
+        margin: margin,
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: AppStyles.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: AppStyles.inputBorder,
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.2),
-              blurRadius: 6,
-              offset: const Offset(0, 1),
+              color: AppStyles.black.withValues(alpha: 0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              FluentSystemIcons.ic_fluent_book_formula_compatibility_filled,
-              size: 45,
-              color: AppStyles.accent,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppStyles.accentColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                FluentSystemIcons.ic_fluent_book_formula_compatibility_filled,
+                size: 28,
+                color: AppStyles.accentColor,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              courseCode,
+              style: AppStyles.pageTitle.copyWith(
+                fontSize: 20,
+                letterSpacing: -0.5,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              courseCode,
-              style: AppStyles.AppStyles.subStyle.copyWith(
-                fontSize: 24,
-                fontWeight: FontWeight.w500,
-                height: 1.1,
+              courseName,
+              style: AppStyles.pageSubtitle.copyWith(
+                fontSize: 13,
+                height: 1.4,
               ),
-            ),
-            const SizedBox(height: 2),
-            Expanded(
-              child: Text(
-                courseName,
-                style: AppStyles.AppStyles.subStyle.copyWith(
-                  fontWeight: FontWeight.w400,
-                  height: 1.15,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

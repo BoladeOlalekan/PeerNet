@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,6 +38,45 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   void dispose() {
     nicknameController.dispose();
     super.dispose();
+  }
+
+  bool get _hasUnsavedChanges {
+    final user = ref.read(authControllerProvider).user.value;
+    final initialNickname = user?.nickname ?? user?.name ?? '';
+    final nicknameChanged = nicknameController.text.trim() != initialNickname.trim();
+    final imageChanged = _selectedImage != null;
+    return nicknameChanged || imageChanged;
+  }
+
+  Future<bool?> _showDiscardWarningDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          'Discard Changes?',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'You have unsaved changes. Are you sure you want to discard them?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppStyles.errorColor,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Discard'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _pickImage() async {
@@ -126,19 +166,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       // Refresh Riverpod state so whole app picks up changes
       await authController.refreshUser();
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully!')),
-        );
-        context.pop();
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully!')),
+      );
+      context.pop();
     } catch (e) {
       debugPrint('Failed to save profile: $e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving profile: ${e.toString()}')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving profile: ${e.toString()}')),
+      );
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -159,197 +197,267 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final currentAvatar = _selectedImage != null
         ? FileImage(_selectedImage!)
         : (user?.avatarUrl != null && user!.avatarUrl!.isNotEmpty
-            ? NetworkImage(user.avatarUrl!)
+            ? CachedNetworkImageProvider(user.avatarUrl!)
             : const AssetImage('assets/images/default_avatar.png'))
                 as ImageProvider;
 
-    return Scaffold(
-      backgroundColor: AppStyles.backgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // === HEADER ===
-            Container(
-              height: 56,
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Colors.grey.shade300, width: 0.8),
-                ),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: Icon(FluentSystemIcons.ic_fluent_ios_arrow_left_filled),
-                    color: Colors.black87,
-                    onPressed: () => context.pop(),
-                  ),
-                  Text(
-                    "Edit Profile",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(width: 48),
-                ],
-              ),
-            ),
-
-            // === MAIN CONTENT ===
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 420),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Avatar section
-                        Stack(
-                          alignment: Alignment.bottomRight,
-                          children: [
-                            CircleAvatar(
-                              radius: 65,
-                              backgroundImage: currentAvatar,
-                              backgroundColor: Colors.grey.shade100,
-                            ),
-                            GestureDetector(
-                              onTap: _pickImage,
-                              child: Container(
-                                height: 40,
-                                width: 40,
+    return PopScope(
+      canPop: !_hasUnsavedChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final discard = await _showDiscardWarningDialog();
+        if (discard == true) {
+          if (!context.mounted) return;
+          context.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppStyles.backgroundColor,
+        appBar: AppBar(
+          backgroundColor: AppStyles.backgroundColor,
+          elevation: 0,
+          centerTitle: true,
+          title: Text(
+            "Edit Profile",
+            style: AppStyles.pageTitle.copyWith(fontSize: 20),
+          ),
+          leading: IconButton(
+            icon: const Icon(FluentSystemIcons.ic_fluent_ios_arrow_left_filled),
+            color: AppStyles.headingColor,
+            onPressed: () => Navigator.maybePop(context),
+          ),
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // === MAIN CONTENT ===
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Avatar section
+                          Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              Container(
                                 decoration: BoxDecoration(
-                                  color: AppStyles.accentColor,
                                   shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 4),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 3),
+                                      color: Colors.black.withValues(alpha: 0.1),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
                                     ),
                                   ],
                                 ),
-                                child: _isPicking
-                                    ? const Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Icon(
-                                        FluentSystemIcons.ic_fluent_camera_add_filled,
-                                        color: Colors.white,
-                                        size: 22,
-                                      ),
+                                child: CircleAvatar(
+                                  radius: 60,
+                                  backgroundImage: currentAvatar,
+                                  backgroundColor: Colors.grey.shade100,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                              Positioned(
+                                right: 2,
+                                bottom: 2,
+                                child: GestureDetector(
+                                  onTap: _pickImage,
+                                  child: Container(
+                                    height: 38,
+                                    width: 38,
+                                    decoration: BoxDecoration(
+                                      color: AppStyles.accentColor,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.2),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: _isPicking
+                                        ? const Padding(
+                                            padding: EdgeInsets.all(9.0),
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : const Icon(
+                                            FluentSystemIcons.ic_fluent_camera_add_filled,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
 
-                        const SizedBox(height: 16),
+                          const SizedBox(height: 16),
 
-                        // Change Photo
-                        SizedBox(
-                          height: 40,
-                          child: TextButton(
-                            style: AppStyles.editProfileButton,
-                            onPressed: _pickImage,
-                            child: Text(
-                              "Change Photo",
-                              style: AppStyles.editText,
+                          // Change Photo Text Button
+                          SizedBox(
+                            height: 40,
+                            child: TextButton(
+                              style: AppStyles.editProfileButton,
+                              onPressed: _pickImage,
+                              child: Text(
+                                "Change Photo",
+                                style: AppStyles.editText,
+                              ),
                             ),
                           ),
-                        ),
 
-                        SizedBox(height: 32),
+                          const SizedBox(height: 28),
 
-                        // Nickname
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Nickname",
-                              style: AppStyles.inputLabel.copyWith(color: AppStyles.subText)
+                          // Inputs Card Group
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: AppStyles.inputBorder),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                            SizedBox(height: 1),
-                            TextField(
-                              controller: nicknameController,
-                              decoration: InputDecoration(
-                                hintText: "Enter your nickname",
-                                hintStyle: AppStyles.hintStyle,
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.grey.shade400,
-                                    width: 1,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Nickname Section
+                                Text(
+                                  "NICKNAME",
+                                  style: AppStyles.formLabelStyle.copyWith(
+                                    fontSize: 12,
+                                    color: AppStyles.labelText,
+                                    letterSpacing: 1.0,
                                   ),
                                 ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: AppStyles.accentColor,
-                                    width: 2,
+                                const SizedBox(height: 8),
+                                TextField(
+                                  controller: nicknameController,
+                                  style: AppStyles.inputTextStyle,
+                                  decoration: AppStyles.inputDecoration(
+                                    hint: "Enter your nickname",
+                                    suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                                      valueListenable: nicknameController,
+                                      builder: (context, value, child) {
+                                        return value.text.isNotEmpty
+                                            ? IconButton(
+                                                icon: const Icon(
+                                                  Icons.clear_rounded,
+                                                  size: 18,
+                                                  color: AppStyles.iconMuted,
+                                                ),
+                                                onPressed: () => nicknameController.clear(),
+                                              )
+                                            : const SizedBox.shrink();
+                                      },
+                                    ),
                                   ),
                                 ),
-                              ),
+                                const SizedBox(height: 24),
+
+                                // Email Section (Read-only)
+                                Text(
+                                  "EMAIL ADDRESS",
+                                  style: AppStyles.formLabelStyle.copyWith(
+                                    fontSize: 12,
+                                    color: AppStyles.labelText,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  controller: TextEditingController(text: user?.email ?? ""),
+                                  style: AppStyles.inputTextStyle.copyWith(
+                                    color: AppStyles.formLabel,
+                                  ),
+                                  readOnly: true,
+                                  enabled: false,
+                                  decoration: AppStyles.inputDecoration(
+                                    hint: "No email address found",
+                                    suffixIcon: const Padding(
+                                      padding: EdgeInsets.only(right: 12),
+                                      child: Icon(
+                                        FluentSystemIcons.ic_fluent_lock_filled,
+                                        size: 18,
+                                        color: AppStyles.iconMuted,
+                                      ),
+                                    ),
+                                  ).copyWith(
+                                    fillColor: AppStyles.inputFill,
+                                    filled: true,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // === SAVE BUTTON ===
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                decoration: const BoxDecoration(
+                  color: AppStyles.white,
+                  border: Border(
+                    top: BorderSide(
+                      color: AppStyles.inputBorder,
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: SizedBox(
+                    height: 52,
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isSaving ? null : _saveChanges,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppStyles.primaryColor,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: _isSaving
+                          ? const CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            )
+                          : const Text(
+                              "Save Changes",
                               style: TextStyle(
+                                fontWeight: FontWeight.bold,
                                 fontSize: 16,
-                                color: AppStyles.subText,
+                                letterSpacing: 0.2,
                               ),
                             ),
-                          ],
-                        ),
-                      ],
                     ),
                   ),
                 ),
               ),
-            ),
-
-            // === SAVE BUTTON ===
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: Colors.grey.shade300, width: 0.8),
-                ),
-                color: AppStyles.backgroundColor.withValues(alpha: 0.9),
-              ),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: SizedBox(
-                  height: 48,
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isSaving ? null : _saveChanges,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppStyles.primaryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: _isSaving
-                    ? const CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      )
-                    : Text(
-                      "Save Changes",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

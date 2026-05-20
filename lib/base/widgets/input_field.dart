@@ -13,16 +13,16 @@ class InputField extends StatelessWidget {
   final TextInputType? keyboardType;
 
   const InputField({
-    super.key, 
-    required this.controller, 
+    super.key,
+    required this.controller,
     required this.label,
-    required this.hint, 
-    required this.errMsg, 
-    this.obscureText = false, 
-    this.suffixIcon, 
-    this.keyboardType, 
-    this.minLength, 
-    this.validator, 
+    required this.hint,
+    required this.errMsg,
+    this.obscureText = false,
+    this.suffixIcon,
+    this.keyboardType,
+    this.minLength,
+    this.validator,
   });
 
   @override
@@ -30,40 +30,31 @@ class InputField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label, 
-          style: AppStyles.inputLabel
-        ),
+        Text(label, style: AppStyles.formLabelStyle),
 
-        SizedBox(height: 10),
+        const SizedBox(height: 8),
 
         TextFormField(
           controller: controller,
           autofillHints: null,
           obscureText: obscureText,
           keyboardType: keyboardType,
-          decoration: InputDecoration(
+          style: AppStyles.inputTextStyle,
+          decoration: AppStyles.inputDecoration(
+            hint: hint,
             suffixIcon: suffixIcon,
-            hintText: hint,
-            hintStyle: AppStyles.hintStyle,
-            filled: true,
-            fillColor: AppStyles.backgroundColor,
-            border: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
-          validator: validator ??
-            (value) {
-            if (value == null || value.isEmpty) {
-              return errMsg;
-            }
-            if (minLength != null && value.length < minLength!) {
-              return 'Must be at least $minLength characters';
-            }
-            return null;
-          },
+          validator:
+              validator ??
+              (value) {
+                if (value == null || value.isEmpty) {
+                  return errMsg;
+                }
+                if (minLength != null && value.length < minLength!) {
+                  return 'Must be at least $minLength characters';
+                }
+                return null;
+              },
         ),
       ],
     );
@@ -93,34 +84,25 @@ class DropdownField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label, 
-          style: AppStyles.inputLabel
-        ),
-        
-        SizedBox(height: 10),
+        Text(label, style: AppStyles.formLabelStyle),
+
+        const SizedBox(height: 8),
 
         DropdownButtonFormField<String>(
           value: value,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: AppStyles.hintStyle,
-            filled: true,
-            fillColor: AppStyles.backgroundColor,
-            border: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          style: AppStyles.inputTextStyle,
+          icon: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: AppStyles.iconMuted,
           ),
+          decoration: AppStyles.inputDecoration(hint: hint),
           items: items.map((item) {
-            return DropdownMenuItem(
-              value: item,
-              child: Text(item),
-            );
+            return DropdownMenuItem(value: item, child: Text(item));
           }).toList(),
           onChanged: onChanged,
-          validator: validator ?? (value) => value == null ? 'Please select your $label' : null,
+          validator:
+              validator ??
+              (value) => value == null ? 'Please select your $label' : null,
         ),
       ],
     );
