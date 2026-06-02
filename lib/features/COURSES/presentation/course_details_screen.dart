@@ -188,7 +188,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
             // ======= Content Grid =======
             Expanded(
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 100),
                 transitionBuilder: (child, animation) {
                   return FadeTransition(
                     opacity: animation,

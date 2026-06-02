@@ -37,6 +37,19 @@ class UploadMaterialRepository {
     return List<Map<String, dynamic>>.from(data);
   }
 
+  Future<List<Map<String, dynamic>>> fetchAllCoursesForUpload({
+    required String department,
+    required int level,
+  }) async {
+    final data = await _supabase
+        .from('courses')
+        .select()
+        .eq('department', department)
+        .eq('level', level);
+
+    return List<Map<String, dynamic>>.from(data);
+  }
+
   Future<void> uploadMaterial({
     required String uploaderId,
     required String department,

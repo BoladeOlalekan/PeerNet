@@ -3,10 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:peer_net/base/routing/route_names.dart';
 import 'package:peer_net/features/AUTH/domain/user_entity.dart';
-import 'package:peer_net/features/HOME/upload_course/upload_material_controller.dart';
+import 'package:peer_net/features/home/upload_course/upload_material_controller.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:peer_net/main.dart';
 
@@ -25,6 +26,7 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
   final List<String> _fileTypes = ['Note', 'Video', 'Past Question'];
 
   List<String> _semesters = [];
+  List<Map<String, dynamic>> _allCourses = [];
   List<Map<String, dynamic>> _courses = [];
 
   String? _selectedSemester;
@@ -32,7 +34,7 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
   String? _selectedFileType;
   File? _selectedFile;
 
-  bool _loadingSemesters = true;
+  bool _loadingData = true;
 
   int _parseLevel(String levelStr) {
     final digits = RegExp(r'\d+').stringMatch(levelStr);
@@ -42,48 +44,52 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchSemestersInBackground();
+    _loadInitialData();
   }
 
-  Future<void> _fetchSemestersInBackground() async {
+  Future<void> _loadInitialData() async {
     try {
       final level = _parseLevel(widget.currentUser.level);
-      final semesters = await ref
+      final courses = await ref
           .read(uploadMaterialControllerProvider.notifier)
-          .fetchSemesters(
+          .fetchAllCoursesForUpload(
             department: widget.currentUser.department,
             level: level,
           );
 
       if (mounted) {
         setState(() {
-          _semesters = semesters;
-          _loadingSemesters = false;
+          _allCourses = courses;
+          // Dynamically extract and sort unique semesters
+          _semesters = courses
+              .map<String>((c) => c['semester'] as String)
+              .toSet()
+              .toList();
+          _semesters.sort();
+          _loadingData = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _loadingSemesters = false);
+        setState(() => _loadingData = false);
       }
-      debugPrint("Error fetching semesters: $e");
+      debugPrint("Error loading upload data: $e");
     }
   }
 
-  Future<void> _loadCourses(String semester) async {
-    setState(() => _courses = []);
-    try {
-      final level = _parseLevel(widget.currentUser.level);
-      final data = await ref
-          .read(uploadMaterialControllerProvider.notifier)
-          .fetchCourses(
-            department: widget.currentUser.department,
-            level: level,
-            semester: semester,
-          );
-      setState(() => _courses = data);
-    } catch (e) {
-      debugPrint("Error fetching courses: $e");
-    }
+  void _onSemesterChanged(String? semester) {
+    setState(() {
+      _selectedSemester = semester;
+      _selectedCourseId = null; // Reset course selection
+      if (semester != null) {
+        // Filter courses in-memory instantly
+        _courses = _allCourses
+            .where((course) => course['semester'] == semester)
+            .toList();
+      } else {
+        _courses = [];
+      }
+    });
   }
 
   Future<void> _pickFile() async {
@@ -155,7 +161,6 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
         courseCode: courseCode,
       );
 
-      // ✅ Trigger local notification after successful upload
       final notifier = ref.read(notificationServiceProvider);
       await notifier.showNotification(
         title: 'Upload Complete!',
@@ -169,6 +174,7 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
           _selectedCourseId = null;
           _selectedFileType = null;
           _selectedSemester = null;
+          _courses = [];
         });
       }
     } catch (e) {
@@ -177,185 +183,112 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
   }
 
   void _showSnack(String msg) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final uploadState = ref.watch(uploadMaterialControllerProvider);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Upload File'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(FluentSystemIcons.ic_fluent_ios_arrow_left_filled),
-          color: AppStyles.subText,
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: _loadingSemesters
-      ? const Center(child: CircularProgressIndicator())
-      : Padding(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: ListView(
-              children: [
-                _buildReadonlyField("Department", widget.currentUser.department),
-                const SizedBox(height: 16),
-                _buildReadonlyField("Level", widget.currentUser.level),
-                const SizedBox(height: 16),
-
-                // Semester Dropdown
-                _buildDropdown(
-                  value: _selectedSemester,
-                  items: _semesters,
-                  hint: 'Select Semester',
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedSemester = value;
-                      _selectedCourseId = null;
-                      if (value != null) _loadCourses(value);
-                    });
-                  },
-                  validator: (v) =>
-                      v == null ? 'Please select a semester' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Course Dropdown
-                DropdownButtonFormField<String>(
-                  value: _selectedCourseId,
-                  isExpanded: true,
-                  items: _courses
-                  .map(
-                    (course) => DropdownMenuItem<String>(
-                      value: course['id'].toString(),
-                      child: Text(
-                        '${course['course_code']} - ${course['course_name']}',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  )
-                  .toList(),
-                  onChanged: (v) => setState(() => _selectedCourseId = v),
-                  decoration: InputDecoration(
-                    hintText: 'Select Course',
-                    hintStyle: AppStyles.hintStyle,
-                    filled: true,
-                    fillColor: AppStyles.backgroundColor,
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                  ),
-                  validator: (v) => v == null ? 'Please select a course' : null,
-                ),
-
-                const SizedBox(height: 16),
-
-                // File Type Dropdown
-                _buildDropdown(
-                  value: _selectedFileType,
-                  items: _fileTypes,
-                  hint: 'Select File Type',
-                  onChanged: (v) => setState(() => _selectedFileType = v),
-                  validator: (v) =>
-                      v == null ? 'Please select a file type' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // File Picker
-                GestureDetector(
-                  onTap: _pickFile,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 48),
-                    decoration: BoxDecoration(
-                      color: AppStyles.backgroundColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            FluentSystemIcons.ic_fluent_folder_filled,
-                            color: AppStyles.accentColor,
-                            size: 35,
-                          ),
-                          const SizedBox(width: 10),
-                          Flexible(
-                            child: Text(
-                              _selectedFile != null
-                                  ? _selectedFile!.path.split('/').last
-                                  : 'Select File',
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: _selectedFile == null
-                                    ? Colors.grey
-                                    : Colors.black87,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Submit button
-                TextButton.icon(
-                  style: ButtonStyle(
-                    padding: WidgetStateProperty.all(
-                      const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    backgroundColor: WidgetStateProperty.all(
-                        AppStyles.primaryColor),
-                    foregroundColor:
-                        WidgetStateProperty.all(AppStyles.accentColor),
-                    shape: WidgetStateProperty.all(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  onPressed: uploadState.isLoading ? null : _submit,
-                  icon: uploadState.isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: Colors.white,
-                          ),
-                        )
-                      : Icon(
-                          FluentSystemIcons.ic_fluent_upload_filled,
-                          size: 18,
-                          color: AppStyles.borderText,
-                        ),
-                  label: Text(
-                    uploadState.isLoading ? 'Uploading...' : 'Submit',
-                    style: AppStyles.editText.copyWith(
-                      fontSize: 18,
-                      color: AppStyles.borderText,
-                    ),
-                  ),
-                ),
-              ],
+  Widget _buildFormSkeleton() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade50,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Department Label & Field
+          Container(
+            width: 100,
+            height: 14,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
             ),
           ),
-        ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Level Label & Field
+          Container(
+            width: 80,
+            height: 14,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Semester Dropdown
+          Container(
+            width: double.infinity,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Course Dropdown
+          Container(
+            width: double.infinity,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // File Type Dropdown
+          Container(
+            width: double.infinity,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // File Picker Zone
+          Container(
+            width: double.infinity,
+            height: 140,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Submit Button
+          Container(
+            width: double.infinity,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -365,21 +298,27 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
       children: [
         Text(
           label,
-          style: AppStyles.hintStyle.copyWith(
+          style: const TextStyle(
+            color: AppStyles.headingColor,
             fontWeight: FontWeight.w600,
-            fontSize: 16,
+            fontSize: 14,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         TextFormField(
           readOnly: true,
           initialValue: value,
-          decoration: InputDecoration(
+          style: const TextStyle(
+            color: AppStyles.mutedText,
+            fontSize: 15,
+          ),
+          decoration: AppStyles.inputDecoration(hint: '').copyWith(
             filled: true,
-            fillColor: AppStyles.backgroundColor,
-            border: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(12),
+            fillColor: Colors.grey.shade50,
+            suffixIcon: const Icon(
+              FluentSystemIcons.ic_fluent_lock_filled,
+              color: AppStyles.iconMuted,
+              size: 18,
             ),
           ),
         ),
@@ -401,19 +340,226 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
           .map((item) => DropdownMenuItem(value: item, child: Text(item)))
           .toList(),
       onChanged: onChanged,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: AppStyles.hintStyle,
+      style: AppStyles.inputTextStyle,
+      decoration: AppStyles.inputDecoration(hint: hint).copyWith(
         filled: true,
-        fillColor: AppStyles.backgroundColor,
-        border: OutlineInputBorder(
-          borderSide: BorderSide.none,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        fillColor: Colors.white,
       ),
       validator: validator,
+    );
+  }
+
+  Widget _buildCourseDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _selectedCourseId,
+      isExpanded: true,
+      style: AppStyles.inputTextStyle,
+      items: _courses
+          .map(
+            (course) => DropdownMenuItem<String>(
+              value: course['id'].toString(),
+              child: Text(
+                '${course['course_code']} - ${course['course_name']}',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          )
+          .toList(),
+      onChanged: (v) => setState(() => _selectedCourseId = v),
+      decoration: AppStyles.inputDecoration(hint: 'Select Course').copyWith(
+        filled: true,
+        fillColor: Colors.white,
+      ),
+      validator: (v) => v == null ? 'Please select a course' : null,
+    );
+  }
+
+  Widget _buildUploadZone() {
+    return GestureDetector(
+      onTap: _pickFile,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppStyles.inputBorder),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.01),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppStyles.accentColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                FluentSystemIcons.ic_fluent_folder_filled,
+                color: AppStyles.accentColor,
+                size: 24,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _selectedFile != null ? 'File Selected' : 'Choose a file',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: AppStyles.headingColor,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _selectedFile != null
+                  ? _selectedFile!.path.split('/').last
+                  : 'Tap to browse notes, videos, or Qs',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _selectedFile != null ? AppStyles.accentColor : AppStyles.mutedText,
+                fontSize: 13,
+                fontWeight: _selectedFile != null ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton(AsyncValue<void> uploadState) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: FilledButton.icon(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppStyles.primaryColor,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 0,
+        ),
+        onPressed: uploadState.isLoading || _loadingData ? null : _submit,
+        icon: uploadState.isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : const Icon(
+                FluentSystemIcons.ic_fluent_upload_filled,
+                size: 20,
+              ),
+        label: Text(
+          uploadState.isLoading ? 'Uploading...' : 'Submit Material',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final uploadState = ref.watch(uploadMaterialControllerProvider);
+
+    return Scaffold(
+      backgroundColor: AppStyles.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: AppStyles.backgroundColor,
+        elevation: 0,
+        title: Text(
+          'Upload File',
+          style: AppStyles.pageTitle.copyWith(fontSize: 20),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(FluentSystemIcons.ic_fluent_ios_arrow_left_filled),
+          color: AppStyles.headingColor,
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppStyles.inputBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.015),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Form(
+              key: _formKey,
+              child: _loadingData
+                  ? _buildFormSkeleton()
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildReadonlyField("Department", widget.currentUser.department),
+                        const SizedBox(height: 16),
+                        _buildReadonlyField("Level", widget.currentUser.level),
+                        const SizedBox(height: 16),
+
+                        // Semester Dropdown
+                        _buildDropdown(
+                          value: _selectedSemester,
+                          items: _semesters,
+                          hint: 'Select Semester',
+                          onChanged: _onSemesterChanged,
+                          validator: (v) =>
+                              v == null ? 'Please select a semester' : null,
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Course Dropdown
+                        _buildCourseDropdown(),
+                        const SizedBox(height: 16),
+
+                        // File Type Dropdown
+                        _buildDropdown(
+                          value: _selectedFileType,
+                          items: _fileTypes,
+                          hint: 'Select File Type',
+                          onChanged: (v) => setState(() => _selectedFileType = v),
+                          validator: (v) =>
+                              v == null ? 'Please select a file type' : null,
+                        ),
+                        const SizedBox(height: 20),
+
+                        // File Picker
+                        _buildUploadZone(),
+                        const SizedBox(height: 28),
+
+                        // Submit button
+                        _buildSubmitButton(uploadState),
+                      ],
+                    ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

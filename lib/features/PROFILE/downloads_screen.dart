@@ -14,8 +14,10 @@ class DownloadsScreen extends StatefulWidget {
 
 class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late TextEditingController _searchController;
   List<ds.DownloadedResource> _downloads = [];
   String _searchQuery = '';
+
   String get _currentSearchHint {
     switch (_tabController.index) {
       case 0:
@@ -29,10 +31,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
     }
   }
 
-
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       if (mounted && !_tabController.indexIsChanging) {
@@ -50,126 +52,43 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final tabs = ['Notes', 'Videos', 'Past Questions'];
+  String _formatSize(int? bytes) {
+    if (bytes == null || bytes <= 0) return 'Unknown size';
+    const suffixes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    var i = 0;
+    double size = bytes.toDouble();
+    while (size >= 1024 && i < suffixes.length - 1) {
+      size /= 1024;
+      i++;
+    }
+    return '${size.toStringAsFixed(1)} ${suffixes[i]}';
+  }
 
-    return Scaffold(
-      appBar: AppBar(
-        title:  Text('Downloads'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(FluentSystemIcons.ic_fluent_ios_arrow_left_filled),
-          color: AppStyles.subText,
-          onPressed: () => Navigator.pop(context),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: AppStyles.primaryColor,
-          labelColor: AppStyles.primaryColor,
-          unselectedLabelColor: AppStyles.subText,
-          tabs: [
-            for (final t in tabs) Tab(text: t),
-          ],
-        ),
-      ),
+  String _formatDate(int timestamp) {
+    final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    final now = DateTime.now();
+    final difference = now.difference(date);
 
-      body: Column(
-        children: [
-          //Search Bar
-          Padding(
-            padding:  EdgeInsets.fromLTRB(12, 8, 12, 0),
-            child: TextField(
-              onChanged: (value) => setState(() => _searchQuery = value),
-              decoration: InputDecoration(
-                prefixIcon:  Icon(FluentSystemIcons.ic_fluent_search_filled),
-                hintText: _currentSearchHint,
-                filled: true,
-                fillColor: AppStyles.accentColor.withValues(alpha: 0.2),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-
-          // Tab Content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: tabs.map((category) {
-                final filtered = _downloads.where((file) {
-                String expectedType;
-                switch (category) {
-                  case 'Notes':
-                    expectedType = 'note';
-                    break;
-                  case 'Videos':
-                    expectedType = 'video';
-                    break;
-                  case 'Past Questions':
-                    expectedType = 'past_question';
-                    break;
-                  default:
-                    expectedType = '';
-                }
-                final matchType = file.fileType == expectedType;
-                final matchQuery = file.fileName.toLowerCase().contains(_searchQuery.toLowerCase());
-                return matchType && matchQuery;
-                }).toList();
-
-                if (filtered.isEmpty) {
-                  return _buildEmptyState(category);
-                }
-
-                return ListView.builder(
-                  padding:  EdgeInsets.all(12),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, i) {
-                    final file = filtered[i];
-                    final icon = _getIconForFile(file.fileType);
-                    return Card(
-                      color: AppStyles.borderText,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      margin:  EdgeInsets.only(bottom: 10),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: AppStyles.accentColor.withValues(alpha: 0.15),
-                          child: Icon(icon, color: AppStyles.accentColor),
-                        ),
-                        title: Text(
-                          file.fileName,
-                          style: TextStyle(
-                            color: AppStyles.subText, 
-                            fontWeight: FontWeight.w500
-                          ),
-                        ),
-                        subtitle: Text(
-                          file.fileType.toUpperCase(),
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                        trailing: IconButton(
-                          icon:  Icon(Icons.more_vert),
-                          color: AppStyles.subText.withValues(alpha: 0.7),
-                          onPressed: () => _showFileOptions(file),
-                        ),
-                        onTap: () async {
-                          await OpenFilex.open(file.localPath);
-                        },
-                      ),
-                    );
-                  },
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
+    if (difference.inDays == 0) {
+      if (difference.inHours == 0) {
+        if (difference.inMinutes == 0) {
+          return 'Just now';
+        }
+        return '${difference.inMinutes}m ago';
+      }
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return '${months[date.month - 1]} ${date.day}, ${date.year}';
+    }
   }
 
   IconData _getIconForFile(String fileType) {
@@ -208,24 +127,41 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
 
     return Center(
       child: Padding(
-        padding:  EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 80, color: AppStyles.accentColor.withValues(alpha: 0.4)),
-             SizedBox(height: 16),
-            Text(message,
-              style: TextStyle(
-                color: AppStyles.subText,
-                fontWeight: FontWeight.w600,
-                fontSize: 16
-              )
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppStyles.accentColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 48,
+                color: AppStyles.accentColor,
+              ),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 20),
             Text(
-              'Your downloaded $category will appear here.',
+              message,
+              style: const TextStyle(
+                color: AppStyles.headingColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[500]),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Your downloaded ${category.toLowerCase()} will appear here for offline access.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppStyles.mutedText,
+                fontSize: 14,
+                height: 1.4,
+              ),
             ),
           ],
         ),
@@ -236,30 +172,125 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
   void _showFileOptions(ds.DownloadedResource file) {
     showModalBottomSheet(
       context: context,
-      shape:  RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      backgroundColor: Colors.white,
       builder: (context) {
         return SafeArea(
-          child: Wrap(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                leading:  Icon(
-                  FluentSystemIcons.ic_fluent_open_filled,
-                  color: AppStyles.accentColor
+              // Drag Handle
+              const SizedBox(height: 8),
+              Container(
+                width: 38,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                title:  Text('Open File'),
+              ),
+              const SizedBox(height: 16),
+
+              // File Info Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppStyles.accentColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        _getIconForFile(file.fileType),
+                        color: AppStyles.accentColor,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            file.fileName,
+                            style: const TextStyle(
+                              color: AppStyles.headingColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _formatSize(file.size),
+                            style: const TextStyle(
+                              color: AppStyles.mutedText,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Divider(color: AppStyles.inputBorder),
+
+              // Actions
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppStyles.accentColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    FluentSystemIcons.ic_fluent_open_filled,
+                    color: AppStyles.accentColor,
+                    size: 18,
+                  ),
+                ),
+                title: const Text(
+                  'Open File',
+                  style: TextStyle(
+                    color: AppStyles.headingColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 onTap: () async {
                   Navigator.pop(context);
                   await OpenFilex.open(file.localPath);
                 },
               ),
               ListTile(
-                leading: Icon(
-                  FluentSystemIcons.ic_fluent_share_filled,
-                  color: AppStyles.accentColor,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppStyles.accentColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    FluentSystemIcons.ic_fluent_share_filled,
+                    color: AppStyles.accentColor,
+                    size: 18,
+                  ),
                 ),
-                title: Text('Share'),
+                title: const Text(
+                  'Share File',
+                  style: TextStyle(
+                    color: AppStyles.headingColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 onTap: () async {
                   Navigator.pop(context);
                   try {
@@ -271,20 +302,14 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
 
                     final result = await SharePlus.instance.share(params);
 
+                    if (!context.mounted) return;
                     if (result.status == ShareResultStatus.success) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('File shared successfully!')),
                       );
-                    } else if (result.status == ShareResultStatus.dismissed) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Share cancelled')),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Share failed')),
-                      );
                     }
                   } catch (e) {
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Unable to share file: $e')),
                     );
@@ -292,49 +317,284 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
                 },
               ),
               ListTile(
-                leading:  Icon(
-                  FluentSystemIcons.ic_fluent_delete_filled,
-                  color: Colors.red
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    FluentSystemIcons.ic_fluent_delete_filled,
+                    color: Colors.red,
+                    size: 18,
+                  ),
                 ),
-                title:  Text('Delete'),
+                title: const Text(
+                  'Delete File',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 onTap: () async {
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text('Delete File'),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      title: const Text(
+                        'Delete File',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       content: Text('Are you sure you want to delete "${file.fileName}"?'),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
                           child: const Text('Cancel'),
                         ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text(
-                            'Delete',
-                            style: TextStyle(color: Colors.red),
+                        FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.red,
                           ),
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Delete'),
                         ),
                       ],
                     ),
                   );
 
-                  // If user confirms deletion
                   if (confirm == true) {
                     await ds.DownloadService.removeDownload(file.localPath);
-                    Navigator.pop(context);
+                    if (!context.mounted) return;
+                    Navigator.pop(context); // close bottom sheet
                     await _loadDownloads();
 
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('${file.fileName} deleted')),
                     );
                   }
                 },
               ),
+              const SizedBox(height: 12),
             ],
           ),
         );
       },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tabs = ['Notes', 'Videos', 'Past Questions'];
+
+    return Scaffold(
+      backgroundColor: AppStyles.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: AppStyles.backgroundColor,
+        elevation: 0,
+        centerTitle: true,
+        title: Text(
+          'Downloads',
+          style: AppStyles.pageTitle.copyWith(fontSize: 20),
+        ),
+        leading: IconButton(
+          icon: const Icon(FluentSystemIcons.ic_fluent_ios_arrow_left_filled),
+          color: AppStyles.headingColor,
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Column(
+        children: [
+          // Segmented Capsule TabBar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+            child: Container(
+              height: 46,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppStyles.inputBorder),
+              ),
+              child: TabBar(
+                controller: _tabController,
+                labelColor: Colors.white,
+                unselectedLabelColor: AppStyles.labelText,
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerColor: Colors.transparent,
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  color: AppStyles.primaryColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppStyles.primaryColor.withValues(alpha: 0.25),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                tabs: [
+                  for (final t in tabs) Tab(text: t),
+                ],
+              ),
+            ),
+          ),
+
+          // Modern Search Bar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) => setState(() => _searchQuery = value),
+              style: AppStyles.inputTextStyle,
+              decoration: AppStyles.inputDecoration(
+                hint: _currentSearchHint,
+              ).copyWith(
+                prefixIcon: const Icon(
+                  FluentSystemIcons.ic_fluent_search_regular,
+                  color: AppStyles.iconMuted,
+                  size: 20,
+                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(
+                          Icons.clear_rounded,
+                          size: 18,
+                          color: AppStyles.iconMuted,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: Colors.white,
+              ),
+            ),
+          ),
+
+          // Tab Content
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: tabs.map((category) {
+                final filtered = _downloads.where((file) {
+                  String expectedType;
+                  switch (category) {
+                    case 'Notes':
+                      expectedType = 'note';
+                      break;
+                    case 'Videos':
+                      expectedType = 'video';
+                      break;
+                    case 'Past Questions':
+                      expectedType = 'past_question';
+                      break;
+                    default:
+                      expectedType = '';
+                  }
+                  final matchType = file.fileType == expectedType;
+                  final matchQuery = file.fileName.toLowerCase().contains(_searchQuery.toLowerCase());
+                  return matchType && matchQuery;
+                }).toList();
+
+                if (filtered.isEmpty) {
+                  return _buildEmptyState(category);
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, i) {
+                    final file = filtered[i];
+                    final icon = _getIconForFile(file.fileType);
+                    final sizeText = _formatSize(file.size);
+                    final timeText = _formatDate(file.downloadedAt);
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppStyles.inputBorder),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.015),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            leading: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: AppStyles.accentColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                icon,
+                                color: AppStyles.accentColor,
+                                size: 20,
+                              ),
+                            ),
+                            title: Text(
+                              file.fileName,
+                              style: TextStyle(
+                                color: AppStyles.headingColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                "$sizeText • $timeText",
+                                style: const TextStyle(
+                                  color: AppStyles.mutedText,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                            trailing: Material(
+                              color: Colors.transparent,
+                              shape: const CircleBorder(),
+                              clipBehavior: Clip.antiAlias,
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.more_horiz_rounded,
+                                  color: AppStyles.iconMuted,
+                                ),
+                                onPressed: () => _showFileOptions(file),
+                              ),
+                            ),
+                            onTap: () async {
+                              await OpenFilex.open(file.localPath);
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

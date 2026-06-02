@@ -37,6 +37,13 @@ class UploadMaterialController extends StateNotifier<AsyncValue<void>> {
   }) =>
       _repo.fetchCourses(department: department, level: level, semester: semester);
 
+  /// Fetch all courses for upload optimization
+  Future<List<Map<String, dynamic>>> fetchAllCoursesForUpload({
+    required String department,
+    required int level,
+  }) =>
+      _repo.fetchAllCoursesForUpload(department: department, level: level);
+
   /// Upload material file
   Future<void> uploadMaterial({
     required String uploaderId,

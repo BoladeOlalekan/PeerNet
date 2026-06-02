@@ -49,8 +49,9 @@ class _ResourceCardState extends State<ResourceCard> {
 
   Future<Map<String, String?>> _fetchMetadata() async {
     try {
-      if (widget.downloadUrl.isEmpty)
+      if (widget.downloadUrl.isEmpty) {
         return {'size': null, 'content-type': null};
+      }
       final uri = Uri.parse(widget.downloadUrl);
       final res = await http.head(uri);
       final contentType = res.headers['content-type'];
