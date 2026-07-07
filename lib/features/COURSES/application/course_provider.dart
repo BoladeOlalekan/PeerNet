@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:peer_net/features/AUTH/application/auth_providers.dart';
+import 'package:peer_net/features/auth/application/auth_providers.dart';
 import 'package:peer_net/features/COURSES/application/course_controller.dart';
 import 'package:peer_net/features/COURSES/models/course_model.dart';
 

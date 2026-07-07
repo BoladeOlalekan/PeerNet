@@ -7,8 +7,8 @@ import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
-import 'package:peer_net/features/AUTH/application/auth_providers.dart';
-import 'package:peer_net/features/AUTH/data/auth_repository.dart';
+import 'package:peer_net/features/auth/application/auth_providers.dart';
+import 'package:peer_net/features/auth/data/auth_repository.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});

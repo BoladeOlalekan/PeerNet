@@ -4,10 +4,10 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:peer_net/features/AUTH/data/auth_repository.dart';
-import 'package:peer_net/features/AUTH/data/cloudinary_repository.dart';
-import 'package:peer_net/features/AUTH/data/otp_repository.dart';
-import 'package:peer_net/features/AUTH/domain/user_entity.dart';
+import 'package:peer_net/features/auth/data/auth_repository.dart';
+import 'package:peer_net/features/auth/data/cloudinary_repository.dart';
+import 'package:peer_net/features/auth/data/otp_repository.dart';
+import 'package:peer_net/features/auth/domain/user_entity.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Tracks which step of the auth flow the user is in

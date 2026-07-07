@@ -9,7 +9,7 @@ import 'package:peer_net/base/widgets/course/course_card_skeleton.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:peer_net/base/widgets/course/course_list.dart';
 //import 'package:peer_net/base/widgets/route_double_text.dart';
-import 'package:peer_net/features/AUTH/application/auth_providers.dart';
+import 'package:peer_net/features/auth/application/auth_providers.dart';
 import 'package:peer_net/features/COURSES/application/course_provider.dart';
 import 'package:peer_net/base/widgets/network_error_widget.dart';
 

@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:peer_net/base/routing/route_names.dart';
-import 'package:peer_net/features/AUTH/domain/user_entity.dart';
+import 'package:peer_net/features/auth/domain/user_entity.dart';
 import 'package:peer_net/features/home/upload_course/upload_material_controller.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:peer_net/main.dart';

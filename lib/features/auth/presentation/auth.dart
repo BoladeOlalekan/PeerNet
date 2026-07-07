@@ -7,8 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:peer_net/base/routing/route_names.dart';
 import 'package:peer_net/base/widgets/input_field.dart';
-import 'package:peer_net/features/AUTH/application/auth_controller.dart';
-import 'package:peer_net/features/AUTH/application/auth_providers.dart';
+import 'package:peer_net/features/auth/application/auth_controller.dart';
+import 'package:peer_net/features/auth/application/auth_providers.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   final bool showSignUp;

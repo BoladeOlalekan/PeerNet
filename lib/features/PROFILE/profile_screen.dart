@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:peer_net/base/routing/route_names.dart';
-import 'package:peer_net/features/AUTH/data/auth_repository.dart';
+import 'package:peer_net/features/auth/data/auth_repository.dart';
 import 'package:peer_net/base/res/styles/app_styles.dart';
-import 'package:peer_net/features/AUTH/application/auth_providers.dart';
+import 'package:peer_net/features/auth/application/auth_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});

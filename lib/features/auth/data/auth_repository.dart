@@ -6,10 +6,9 @@ import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
-import 'package:peer_net/features/AUTH/domain/user_entity.dart';
+import 'package:peer_net/features/auth/domain/user_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
-
 
 final authRepositoryProvider = riverpod.Provider<AuthRepository>((ref) {
   return AuthRepository(
@@ -82,7 +81,9 @@ class AuthRepository {
 
         final uploadRequest = http.MultipartRequest('POST', uri)
           ..fields['upload_preset'] = _uploadPreset
-          ..files.add(await http.MultipartFile.fromPath('file', avatarFile.path));
+          ..files.add(
+            await http.MultipartFile.fromPath('file', avatarFile.path),
+          );
 
         final uploadResponse = await uploadRequest.send();
         final uploadResult = await http.Response.fromStream(uploadResponse);
@@ -116,10 +117,13 @@ class AuthRepository {
 
       // === STEP 4: UPDATE SUPABASE TABLE (mirror) ===
       try {
-        await supabase.from('users').update({
-          if (nickname != null) 'nickname': nickname,
-          if (newAvatarUrl != null) 'avatar_url': newAvatarUrl,
-        }).eq('firebase_uid', uid);
+        await supabase
+            .from('users')
+            .update({
+              if (nickname != null) 'nickname': nickname,
+              if (newAvatarUrl != null) 'avatar_url': newAvatarUrl,
+            })
+            .eq('firebase_uid', uid);
       } catch (e) {
         print('Supabase update failed: $e');
       }
@@ -230,10 +234,7 @@ class AuthRepository {
           'Content-Type': 'application/json',
           'apikey': supabaseAnonKey,
         },
-        body: jsonEncode({
-          'provider': 'firebase',
-          'id_token': firebaseToken,
-        }),
+        body: jsonEncode({'provider': 'firebase', 'id_token': firebaseToken}),
       );
 
       if (response.statusCode == 200) {
