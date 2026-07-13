@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PeerNet - Admin Portal Login</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Supabase Client JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="login-body">
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M11.25 4.533A9.707 9.707 0 0 0 6 3a9.735 9.735 0 0 0-3.25.555.75.75 0 0 0-.5.707v14.25a.75.75 0 0 0 1 .707A8.237 8.237 0 0 1 6 18.75c1.995 0 3.823.708 5.25 1.89.135.113.305.16c.465.16.95-.142.95-.64V4.533a.75.75 0 0 0-.95-.707ZM12.75 20c0 .498.485.8.95.64 1.427-1.182 3.255-1.89 5.25-1.89a8.237 8.237 0 0 1 2.75.455.75.75 0 0 0 1-.707V4.262a.75.75 0 0 0-.5-.707A9.735 9.735 0 0 0 18 3a9.707 9.707 0 0 0-5.25 1.533v15.467Z" />
+          </svg>
+        </div>
+        <h1>PeerNet Admin</h1>
+        <p>Access the resource & department control panel</p>
+      </div>
+
+      <form id="login-form" class="login-form">
+        <div class="form-group">
+          <label for="email">Admin Email</label>
+          <div class="input-wrapper">
+            <input type="email" id="email" required placeholder="admin@futa.edu.ng" autocomplete="email">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
+          </div>
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn btn-primary btn-block">
+          <span class="btn-text">Sign In</span>
+          <div class="btn-loader hidden"></div>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <p>PeerNet Collaborative Learning Platform &copy; 2026</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/supabase-config.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

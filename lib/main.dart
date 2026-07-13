@@ -101,12 +101,7 @@ class NotificationService {
     );
 
     const notifDetails = NotificationDetails(android: androidDetails);
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      title,
-      body,
-      notifDetails,
-    );
+    await flutterLocalNotificationsPlugin.show(0, title, body, notifDetails);
   }
 }
 

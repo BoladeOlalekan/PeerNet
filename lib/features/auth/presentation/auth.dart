@@ -9,6 +9,7 @@ import 'package:peer_net/base/routing/route_names.dart';
 import 'package:peer_net/base/widgets/input_field.dart';
 import 'package:peer_net/features/auth/application/auth_controller.dart';
 import 'package:peer_net/features/auth/application/auth_providers.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 
 class AuthScreen extends ConsumerStatefulWidget {
   final bool showSignUp;
@@ -41,6 +42,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
       curve: Curves.easeInOut,
     );
     _fadeController!.forward();
+    _fetchDepartments();
   }
 
   @override
@@ -73,8 +75,27 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
   ];
   String? selectedLevel;
 
-  final List<String> departments = ['Software Engineering'];
+  List<String> departments = ['Software Engineering'];
   String? selectedDepartment;
+
+  Future<void> _fetchDepartments() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('departments')
+          .select('name')
+          .order('name');
+      final List<String> fetched = (response as List)
+          .map<String>((row) => row['name'] as String)
+          .toList();
+      if (mounted && fetched.isNotEmpty) {
+        setState(() {
+          departments = fetched;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching departments: $e');
+    }
+  }
 
   void _toggleMode() {
     _fadeController?.reverse().then((_) {

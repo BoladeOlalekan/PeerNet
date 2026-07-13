@@ -43,7 +43,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   bool get _hasUnsavedChanges {
     final user = ref.read(authControllerProvider).user.value;
     final initialNickname = user?.nickname ?? user?.name ?? '';
-    final nicknameChanged = nicknameController.text.trim() != initialNickname.trim();
+    final nicknameChanged =
+        nicknameController.text.trim() != initialNickname.trim();
     final imageChanged = _selectedImage != null;
     return nicknameChanged || imageChanged;
   }
@@ -52,9 +53,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'Discard Changes?',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -106,10 +105,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             toolbarWidgetColor: Colors.white,
             lockAspectRatio: false,
           ),
-          IOSUiSettings(
-            title: 'Crop Photo',
-            aspectRatioLockEnabled: false,
-          ),
+          IOSUiSettings(title: 'Crop Photo', aspectRatioLockEnabled: false),
         ],
       );
 
@@ -140,7 +136,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     if (user == null) return;
 
     final newNickname = nicknameController.text.trim();
-    final nicknameChanged = newNickname.isNotEmpty && newNickname != user.nickname;
+    final nicknameChanged =
+        newNickname.isNotEmpty && newNickname != user.nickname;
     final imageChanged = _selectedImage != null;
 
     // If nothing changed, just pop
@@ -189,17 +186,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     // Show a simple loading / empty UI if user not loaded yet
     if (authState.user.isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final currentAvatar = _selectedImage != null
         ? FileImage(_selectedImage!)
         : (user?.avatarUrl != null && user!.avatarUrl!.isNotEmpty
-            ? CachedNetworkImageProvider(user.avatarUrl!)
-            : const AssetImage('assets/images/default_avatar.png'))
-                as ImageProvider;
+                  ? CachedNetworkImageProvider(user.avatarUrl!)
+                  : const AssetImage('assets/images/default_avatar.png'))
+              as ImageProvider;
 
     return PopScope(
       canPop: !_hasUnsavedChanges,
@@ -234,7 +229,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 20,
+                  ),
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 420),
@@ -248,10 +246,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               Container(
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 4),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 4,
+                                  ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.1),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.1,
+                                      ),
                                       blurRadius: 12,
                                       offset: const Offset(0, 6),
                                     ),
@@ -276,7 +279,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                       shape: BoxShape.circle,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.2),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.2,
+                                          ),
                                           blurRadius: 6,
                                           offset: const Offset(0, 3),
                                         ),
@@ -291,7 +296,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                             ),
                                           )
                                         : const Icon(
-                                            FluentSystemIcons.ic_fluent_camera_add_filled,
+                                            FluentSystemIcons
+                                                .ic_fluent_camera_add_filled,
                                             color: Colors.white,
                                             size: 20,
                                           ),
@@ -351,21 +357,27 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                   style: AppStyles.inputTextStyle,
                                   decoration: AppStyles.inputDecoration(
                                     hint: "Enter your nickname",
-                                    suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                                      valueListenable: nicknameController,
-                                      builder: (context, value, child) {
-                                        return value.text.isNotEmpty
-                                            ? IconButton(
-                                                icon: const Icon(
-                                                  Icons.clear_rounded,
-                                                  size: 18,
-                                                  color: AppStyles.iconMuted,
-                                                ),
-                                                onPressed: () => nicknameController.clear(),
-                                              )
-                                            : const SizedBox.shrink();
-                                      },
-                                    ),
+                                    suffixIcon:
+                                        ValueListenableBuilder<
+                                          TextEditingValue
+                                        >(
+                                          valueListenable: nicknameController,
+                                          builder: (context, value, child) {
+                                            return value.text.isNotEmpty
+                                                ? IconButton(
+                                                    icon: const Icon(
+                                                      Icons.clear_rounded,
+                                                      size: 18,
+                                                      color:
+                                                          AppStyles.iconMuted,
+                                                    ),
+                                                    onPressed: () =>
+                                                        nicknameController
+                                                            .clear(),
+                                                  )
+                                                : const SizedBox.shrink();
+                                          },
+                                        ),
                                   ),
                                 ),
                                 const SizedBox(height: 24),
@@ -381,26 +393,30 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 TextField(
-                                  controller: TextEditingController(text: user?.email ?? ""),
+                                  controller: TextEditingController(
+                                    text: user?.email ?? "",
+                                  ),
                                   style: AppStyles.inputTextStyle.copyWith(
                                     color: AppStyles.formLabel,
                                   ),
                                   readOnly: true,
                                   enabled: false,
-                                  decoration: AppStyles.inputDecoration(
-                                    hint: "No email address found",
-                                    suffixIcon: const Padding(
-                                      padding: EdgeInsets.only(right: 12),
-                                      child: Icon(
-                                        FluentSystemIcons.ic_fluent_lock_filled,
-                                        size: 18,
-                                        color: AppStyles.iconMuted,
+                                  decoration:
+                                      AppStyles.inputDecoration(
+                                        hint: "No email address found",
+                                        suffixIcon: const Padding(
+                                          padding: EdgeInsets.only(right: 12),
+                                          child: Icon(
+                                            FluentSystemIcons
+                                                .ic_fluent_lock_filled,
+                                            size: 18,
+                                            color: AppStyles.iconMuted,
+                                          ),
+                                        ),
+                                      ).copyWith(
+                                        fillColor: AppStyles.inputFill,
+                                        filled: true,
                                       ),
-                                    ),
-                                  ).copyWith(
-                                    fillColor: AppStyles.inputFill,
-                                    filled: true,
-                                  ),
                                 ),
                               ],
                             ),
@@ -414,14 +430,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
               // === SAVE BUTTON ===
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 decoration: const BoxDecoration(
                   color: AppStyles.white,
                   border: Border(
-                    top: BorderSide(
-                      color: AppStyles.inputBorder,
-                      width: 1,
-                    ),
+                    top: BorderSide(color: AppStyles.inputBorder, width: 1),
                   ),
                 ),
                 child: ConstrainedBox(

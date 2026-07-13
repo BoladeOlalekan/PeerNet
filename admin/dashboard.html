@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PeerNet Admin - Dashboard</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Supabase Client JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M11.25 4.533A9.707 9.707 0 0 0 6 3a9.735 9.735 0 0 0-3.25.555.75.75 0 0 0-.5.707v14.25a.75.75 0 0 0 1 .707A8.237 8.237 0 0 1 6 18.75c1.995 0 3.823.708 5.25 1.89.135.113.305.16c.465.16.95-.142.95-.64V4.533a.75.75 0 0 0-.95-.707ZM12.75 20c0 .498.485.8.95.64 1.427-1.182 3.255-1.89 5.25-1.89a8.237 8.237 0 0 1 2.75.455.75.75 0 0 0 1-.707V4.262a.75.75 0 0 0-.5-.707A9.735 9.735 0 0 0 18 3a9.707 9.707 0 0 0-5.25 1.533v15.467Z" />
+          </svg>
+        </div>
+        <h2>PeerNet Admin</h2>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="nav-item active" data-tab="pending">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Pending Review
+        </a>
+        <a class="nav-item" data-tab="resources">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          All Resources
+        </a>
+        <a class="nav-item" data-tab="upload">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          Admin Upload
+        </a>
+        <a class="nav-item" data-tab="departments">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          Departments
+        </a>
+        <a class="nav-item" data-tab="courses">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          Courses
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile-bar">
+          <div class="user-avatar-placeholder" id="user-avatar-initials">A</div>
+          <div class="user-info">
+            <span class="user-email" id="user-email-display">admin@futa.edu.ng</span>
+            <span class="user-role">Administrator</span>
+          </div>
+        </div>
+        <button id="logout-btn" class="btn-logout">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main-content">
+      
+      <!-- ==========================================
+           1. PENDING REVIEW VIEW
+           ========================================== -->
+      <section id="tab-pending" class="tab-content active">
+        <div class="content-header">
+          <h1>Pending Review Queue</h1>
+          <p>Moderate and approve materials shared by FUTA students</p>
+        </div>
+        <div class="pending-grid" id="pending-container">
+          <!-- Pending resource items dynamically rendered here -->
+          <div class="empty-state">
+            <div class="btn-loader"></div>
+            <p>Loading pending reviews...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           2. ALL RESOURCES VIEW
+           ========================================== -->
+      <section id="tab-resources" class="tab-content">
+        <div class="content-header">
+          <h1>Manage Resources</h1>
+          <p>Browse and delete uploaded student materials</p>
+        </div>
+        
+        <div class="table-wrapper">
+          <div class="table-header-filters">
+            <div class="filter-group">
+              <input type="text" id="resource-search" class="search-input" placeholder="Search by filename or course...">
+              <select id="resource-filter-status">
+                <option value="all">All Statuses</option>
+                <option value="approved">Approved</option>
+                <option value="pending">Pending</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <select id="resource-filter-dept">
+                <option value="all">All Departments</option>
+              </select>
+            </div>
+            <button id="resource-refresh-btn" class="btn btn-secondary">
+              Refresh Data
+            </button>
+          </div>
+          
+          <table id="resources-table">
+            <thead>
+              <tr>
+                <th>File Name</th>
+                <th>Course</th>
+                <th>Department</th>
+                <th>Uploader</th>
+                <th>Size</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Uploaded At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="resources-list">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           3. ADMIN UPLOAD VIEW
+           ========================================== -->
+      <section id="tab-upload" class="tab-content">
+        <div class="content-header">
+          <h1>Admin Upload</h1>
+          <p>Add resources directly (auto-approved on submission)</p>
+        </div>
+
+        <div class="content-row">
+          <div class="card-box">
+            <h3>Resource Upload Form</h3>
+            <form id="admin-upload-form">
+              <div class="form-group">
+                <label for="upload-dept">Department</label>
+                <select id="upload-dept" required>
+                  <option value="" disabled selected>Select Department</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="upload-level">Level</label>
+                <select id="upload-level" required>
+                  <option value="" disabled selected>Select Level</option>
+                  <option value="100">100 Level</option>
+                  <option value="200">200 Level</option>
+                  <option value="300">300 Level</option>
+                  <option value="400">400 Level</option>
+                  <option value="500">500 Level</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="upload-semester">Semester</label>
+                <select id="upload-semester" required>
+                  <option value="" disabled selected>Select Semester</option>
+                  <option value="First">First Semester</option>
+                  <option value="Second">Second Semester</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="upload-course">Course</label>
+                <select id="upload-course" required disabled>
+                  <option value="" disabled selected>Select Course (Choose Department & Level first)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="upload-file-type">File Type</label>
+                <select id="upload-file-type" required>
+                  <option value="note">Note / Slides</option>
+                  <option value="past_question">Past Question</option>
+                  <option value="video">Video Lecture Link / Reference</option>
+                </select>
+              </div>
+
+              <!-- Input for YouTube Video if Type is Video -->
+              <div class="form-group hidden" id="youtube-url-group">
+                <label for="upload-youtube-url">YouTube Video URL</label>
+                <input type="text" id="upload-youtube-url" placeholder="https://www.youtube.com/watch?v=...">
+              </div>
+
+              <!-- Input for File Upload -->
+              <div class="form-group" id="file-select-group">
+                <label>Resource File</label>
+                <div class="file-select-zone" id="file-select-zone">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <p class="file-select-text">Drag & drop your file here or click to browse</p>
+                  <p class="file-select-subtext">PDF, DOCX, PPTX, or Image (Max 50MB)</p>
+                  <input type="file" id="upload-file-input" class="hidden">
+                </div>
+                
+                <div class="selected-file-display hidden" id="selected-file-display">
+                  <div class="selected-file-details">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <div>
+                      <div class="selected-file-name" id="selected-file-name">filename.pdf</div>
+                    </div>
+                  </div>
+                  <span class="remove-selected-file" id="remove-file-btn">Remove</span>
+                </div>
+              </div>
+
+              <button type="submit" id="upload-submit-btn" class="btn btn-primary btn-block">
+                <span class="btn-text">Upload & Approve Resource</span>
+                <div class="btn-loader hidden"></div>
+              </button>
+            </form>
+          </div>
+          
+          <div class="card-box">
+            <h3>Upload Guidelines</h3>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 12px;">
+              Admin-uploaded resources bypass the approval workflow. They are instantly set to <strong>Approved</strong> and will be downloadable by FUTA students in the app.
+            </p>
+            <ul style="color: var(--text-secondary); font-size: 14px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+              <li>Please double-check course selection before uploading.</li>
+              <li>Ensure the PDF/Slides file name is clean and descriptive.</li>
+              <li>For <strong>Video Lectures</strong>, upload a placeholder link or file metadata and provide a valid YouTube link.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           4. DEPARTMENTS VIEW
+           ========================================== -->
+      <section id="tab-departments" class="tab-content">
+        <div class="content-header">
+          <h1>Manage Departments</h1>
+          <p>Add and remove dynamic departments for student signup and courses</p>
+        </div>
+
+        <div class="content-row">
+          <div class="card-box">
+            <h3>Add New Department</h3>
+            <form id="add-dept-form">
+              <div class="form-group">
+                <label for="new-dept-name">Department Name</label>
+                <input type="text" id="new-dept-name" required placeholder="e.g. Computer Science" autocomplete="off">
+              </div>
+              <button type="submit" class="btn btn-primary">
+                Add Department
+              </button>
+            </form>
+          </div>
+
+          <div class="card-box">
+            <h3>Available Departments</h3>
+            <table style="width: 100%;">
+              <thead>
+                <tr>
+                  <th>Department Name</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="departments-list">
+                <!-- Dynamically populated departments -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           5. COURSES VIEW
+           ========================================== -->
+      <section id="tab-courses" class="tab-content">
+        <div class="content-header">
+          <h1>Manage Courses</h1>
+          <p>Create, update, and delete course catalogs</p>
+        </div>
+
+        <div class="content-row">
+          <!-- Add/Edit Course form -->
+          <div class="card-box">
+            <h3 id="course-form-title">Create New Course</h3>
+            <form id="course-form">
+              <!-- Edit indicator -->
+              <input type="hidden" id="course-edit-id">
+
+              <div class="form-group">
+                <label for="course-code">Course Code</label>
+                <input type="text" id="course-code" required placeholder="e.g. SEN 511" autocomplete="off" style="text-transform: uppercase;">
+              </div>
+
+              <div class="form-group">
+                <label for="course-name">Course Name</label>
+                <input type="text" id="course-name" required placeholder="e.g. Software Testing & QA" autocomplete="off">
+              </div>
+
+              <div class="form-group">
+                <label for="course-dept">Department</label>
+                <select id="course-dept" required>
+                  <option value="" disabled selected>Select Department</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="course-level">Level</label>
+                <select id="course-level" required>
+                  <option value="" disabled selected>Select Level</option>
+                  <option value="100">100 Level</option>
+                  <option value="200">200 Level</option>
+                  <option value="300">300 Level</option>
+                  <option value="400">400 Level</option>
+                  <option value="500">500 Level</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="course-semester">Semester</label>
+                <select id="course-semester" required>
+                  <option value="" disabled selected>Select Semester</option>
+                  <option value="First">First Semester</option>
+                  <option value="Second">Second Semester</option>
+                </select>
+              </div>
+
+              <div class="action-buttons-cell" style="margin-top: 24px;">
+                <button type="submit" id="course-submit-btn" class="btn btn-primary" style="flex: 1;">
+                  Save Course
+                </button>
+                <button type="button" id="course-cancel-btn" class="btn btn-secondary hidden">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Courses list table -->
+          <div class="card-box" style="grid-column: span 1;">
+            <h3>Course List</h3>
+            <div class="filter-group" style="margin-bottom: 16px;">
+              <select id="course-list-filter-dept">
+                <option value="all">All Departments</option>
+              </select>
+            </div>
+            
+            <div style="max-height: 500px; overflow-y: auto;">
+              <table style="width: 100%;">
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Dept & Info</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="courses-table-body">
+                  <!-- Dynamically populated courses list -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Confirm Dialog Backdrop Modal -->
+  <div id="confirm-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-icon modal-icon-danger" id="confirm-modal-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h3 id="confirm-modal-title">Are you sure?</h3>
+      </div>
+      <div class="modal-body" id="confirm-modal-body">
+        This action cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <button id="confirm-modal-cancel" class="btn btn-secondary">Cancel</button>
+        <button id="confirm-modal-confirm" class="btn btn-danger">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/supabase-config.js"></script>
+  <script src="js/departments.js"></script>
+  <script src="js/courses.js"></script>
+  <script src="js/resources.js"></script>
+  
+  <script>
+    // Tab Navigation Logic
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Remove active class from all nav items
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        // Hide all tab views
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        
+        // Add active to current
+        item.classList.add('active');
+        // Show selected tab view
+        const tabId = item.getAttribute('data-tab');
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+        
+        // Load data specific to the tab
+        onTabActivated(tabId);
+      });
+    });
+
+    async function onTabActivated(tabId) {
+      if (tabId === 'pending') {
+        if (window.fetchPendingResources) fetchPendingResources();
+      } else if (tabId === 'resources') {
+        if (window.fetchAllResources) fetchAllResources();
+      } else if (tabId === 'departments') {
+        if (window.fetchDepartments) fetchDepartments();
+      } else if (tabId === 'courses') {
+        if (window.fetchCoursesList) fetchCoursesList();
+        if (window.loadDepartmentsIntoDropdowns) loadDepartmentsIntoDropdowns();
+      } else if (tabId === 'upload') {
+        if (window.loadDepartmentsIntoDropdowns) loadDepartmentsIntoDropdowns();
+      }
+    }
+
+    // App Initialization on Load
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Check auth status
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = "index.html";
+        return;
+      }
+      
+      // Update display email
+      document.getElementById('user-email-display').innerText = session.user.email;
+      document.getElementById('user-avatar-initials').innerText = session.user.email.substring(0, 2).toUpperCase();
+
+      // Sign Out Button
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        await supabase.auth.signOut();
+        window.location.href = "index.html";
+      });
+
+      // Initial tab load
+      onTabActivated('pending');
+    });
+
+    // Confirmation Modal Helper
+    function showConfirmModal({ title, message, isDanger = true, onConfirm }) {
+      const modal = document.getElementById('confirm-modal');
+      const modalTitle = document.getElementById('confirm-modal-title');
+      const modalBody = document.getElementById('confirm-modal-body');
+      const confirmBtn = document.getElementById('confirm-modal-confirm');
+      const cancelBtn = document.getElementById('confirm-modal-cancel');
+      const icon = document.getElementById('confirm-modal-icon');
+
+      modalTitle.innerText = title;
+      modalBody.innerText = message;
+      
+      if (isDanger) {
+        icon.className = 'modal-icon modal-icon-danger';
+        confirmBtn.className = 'btn btn-danger';
+      } else {
+        icon.className = 'modal-icon modal-icon-primary';
+        confirmBtn.className = 'btn btn-primary';
+      }
+
+      modal.classList.remove('hidden');
+
+      // Clear previous listeners
+      const newConfirmBtn = confirmBtn.cloneNode(true);
+      confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+      newConfirmBtn.addEventListener('click', () => {
+        onConfirm();
+        modal.classList.add('hidden');
+      });
+
+      cancelBtn.onclick = () => {
+        modal.classList.add('hidden');
+      };
+    }
+  </script>
+</body>
+</html>

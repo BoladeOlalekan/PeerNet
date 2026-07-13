@@ -266,7 +266,8 @@ class _ResourceCardState extends State<ResourceCard> {
                                 ? widget.fileName.split('.').last.toUpperCase()
                                 : widget.fileType.toUpperCase();
 
-                            if (snap.connectionState == ConnectionState.waiting) {
+                            if (snap.connectionState ==
+                                ConnectionState.waiting) {
                               return Row(
                                 children: [
                                   Shimmer.fromColors(

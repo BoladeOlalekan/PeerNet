@@ -12,7 +12,8 @@ class DownloadsScreen extends StatefulWidget {
   State<DownloadsScreen> createState() => _DownloadsScreenState();
 }
 
-class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProviderStateMixin {
+class _DownloadsScreenState extends State<DownloadsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late TextEditingController _searchController;
   List<ds.DownloadedResource> _downloads = [];
@@ -86,7 +87,20 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
     } else if (difference.inDays < 7) {
       return '${difference.inDays}d ago';
     } else {
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
       return '${months[date.month - 1]} ${date.day}, ${date.year}';
     }
   }
@@ -137,11 +151,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
                 color: AppStyles.accentColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 48,
-                color: AppStyles.accentColor,
-              ),
+              child: Icon(icon, size: 48, color: AppStyles.accentColor),
             ),
             const SizedBox(height: 20),
             Text(
@@ -245,7 +255,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
 
               // Actions
               ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 4,
+                ),
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -271,7 +284,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
                 },
               ),
               ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 4,
+                ),
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -305,7 +321,9 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
                     if (!context.mounted) return;
                     if (result.status == ShareResultStatus.success) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('File shared successfully!')),
+                        const SnackBar(
+                          content: Text('File shared successfully!'),
+                        ),
                       );
                     }
                   } catch (e) {
@@ -317,7 +335,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
                 },
               ),
               ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 4,
+                ),
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -348,7 +369,9 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
                         'Delete File',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      content: Text('Are you sure you want to delete "${file.fileName}"?'),
+                      content: Text(
+                        'Are you sure you want to delete "${file.fileName}"?',
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
@@ -435,9 +458,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
                     ),
                   ],
                 ),
-                tabs: [
-                  for (final t in tabs) Tab(text: t),
-                ],
+                tabs: [for (final t in tabs) Tab(text: t)],
               ),
             ),
           ),
@@ -449,30 +470,29 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
               controller: _searchController,
               onChanged: (value) => setState(() => _searchQuery = value),
               style: AppStyles.inputTextStyle,
-              decoration: AppStyles.inputDecoration(
-                hint: _currentSearchHint,
-              ).copyWith(
-                prefixIcon: const Icon(
-                  FluentSystemIcons.ic_fluent_search_regular,
-                  color: AppStyles.iconMuted,
-                  size: 20,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.clear_rounded,
-                          size: 18,
-                          color: AppStyles.iconMuted,
-                        ),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-              ),
+              decoration: AppStyles.inputDecoration(hint: _currentSearchHint)
+                  .copyWith(
+                    prefixIcon: const Icon(
+                      FluentSystemIcons.ic_fluent_search_regular,
+                      color: AppStyles.iconMuted,
+                      size: 20,
+                    ),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(
+                              Icons.clear_rounded,
+                              size: 18,
+                              color: AppStyles.iconMuted,
+                            ),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
             ),
           ),
 
@@ -497,7 +517,9 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
                       expectedType = '';
                   }
                   final matchType = file.fileType == expectedType;
-                  final matchQuery = file.fileName.toLowerCase().contains(_searchQuery.toLowerCase());
+                  final matchQuery = file.fileName.toLowerCase().contains(
+                    _searchQuery.toLowerCase(),
+                  );
                   return matchType && matchQuery;
                 }).toList();
 
@@ -534,12 +556,17 @@ class _DownloadsScreenState extends State<DownloadsScreen> with SingleTickerProv
                         child: Material(
                           color: Colors.transparent,
                           child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
                             leading: Container(
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: AppStyles.accentColor.withValues(alpha: 0.1),
+                                color: AppStyles.accentColor.withValues(
+                                  alpha: 0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(

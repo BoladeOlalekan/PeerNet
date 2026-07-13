@@ -39,7 +39,8 @@ class UserUploadsScreen extends ConsumerStatefulWidget {
   ConsumerState<UserUploadsScreen> createState() => _UserUploadsScreenState();
 }
 
-class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen> with SingleTickerProviderStateMixin {
+class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late TextEditingController _searchController;
   String _searchQuery = '';
@@ -95,7 +96,20 @@ class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen> with Sing
       } else if (difference.inDays < 7) {
         return '${difference.inDays}d ago';
       } else {
-        final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        final months = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ];
         return '${months[date.month - 1]} ${date.day}, ${date.year}';
       }
     } catch (_) {
@@ -174,11 +188,7 @@ class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen> with Sing
                 color: AppStyles.accentColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 48,
-                color: AppStyles.accentColor,
-              ),
+              child: Icon(icon, size: 48, color: AppStyles.accentColor),
             ),
             const SizedBox(height: 20),
             Text(
@@ -323,9 +333,7 @@ class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen> with Sing
               ),
             ],
           ),
-          tabs: [
-            for (final t in tabs) Tab(text: t),
-          ],
+          tabs: [for (final t in tabs) Tab(text: t)],
         ),
       ),
     );
@@ -338,30 +346,31 @@ class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen> with Sing
         controller: _searchController,
         onChanged: (value) => setState(() => _searchQuery = value),
         style: AppStyles.inputTextStyle,
-        decoration: AppStyles.inputDecoration(
-          hint: 'Search by filename or course...',
-        ).copyWith(
-          prefixIcon: const Icon(
-            FluentSystemIcons.ic_fluent_search_regular,
-            color: AppStyles.iconMuted,
-            size: 20,
-          ),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(
-                    Icons.clear_rounded,
-                    size: 18,
-                    color: AppStyles.iconMuted,
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                  },
-                )
-              : null,
-          filled: true,
-          fillColor: Colors.white,
-        ),
+        decoration:
+            AppStyles.inputDecoration(
+              hint: 'Search by filename or course...',
+            ).copyWith(
+              prefixIcon: const Icon(
+                FluentSystemIcons.ic_fluent_search_regular,
+                color: AppStyles.iconMuted,
+                size: 20,
+              ),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(
+                        Icons.clear_rounded,
+                        size: 18,
+                        color: AppStyles.iconMuted,
+                      ),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() => _searchQuery = '');
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: Colors.white,
+            ),
       ),
     );
   }
@@ -421,7 +430,7 @@ class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen> with Sing
               children: tabs.map((category) {
                 final filtered = uploads.where((item) {
                   final status = item['approval_status'] ?? 'pending';
-                  
+
                   // Filter by status tab
                   bool statusMatches = false;
                   switch (category) {
@@ -429,13 +438,16 @@ class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen> with Sing
                       statusMatches = true;
                       break;
                     case 'Pending':
-                      statusMatches = status.toString().toLowerCase() == 'pending';
+                      statusMatches =
+                          status.toString().toLowerCase() == 'pending';
                       break;
                     case 'Approved':
-                      statusMatches = status.toString().toLowerCase() == 'approved';
+                      statusMatches =
+                          status.toString().toLowerCase() == 'approved';
                       break;
                     case 'Rejected':
-                      statusMatches = status.toString().toLowerCase() == 'rejected';
+                      statusMatches =
+                          status.toString().toLowerCase() == 'rejected';
                       break;
                   }
 
@@ -443,13 +455,18 @@ class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen> with Sing
 
                   // Filter by search query (filename or course code)
                   if (_searchQuery.isNotEmpty) {
-                    final filename = (item['file_name'] as String? ?? '').toLowerCase();
-                    final courseId = (item['course_id'] as String? ?? '').toLowerCase();
-                    
+                    final filename = (item['file_name'] as String? ?? '')
+                        .toLowerCase();
+                    final courseId = (item['course_id'] as String? ?? '')
+                        .toLowerCase();
+
                     // Look up course code
-                    final courseCode = (coursesMap[item['course_id']?.toString()] ?? '').toLowerCase();
-                    
-                    final matchesQuery = filename.contains(_searchQuery.toLowerCase()) ||
+                    final courseCode =
+                        (coursesMap[item['course_id']?.toString()] ?? '')
+                            .toLowerCase();
+
+                    final matchesQuery =
+                        filename.contains(_searchQuery.toLowerCase()) ||
                         courseCode.contains(_searchQuery.toLowerCase()) ||
                         courseId.contains(_searchQuery.toLowerCase());
                     return matchesQuery;
@@ -470,13 +487,17 @@ class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen> with Sing
                     final upload = filtered[index];
                     final status = upload['approval_status'] ?? 'pending';
                     final fileType = upload['file_type'] as String? ?? 'note';
-                    final fileName = upload['file_name'] as String? ?? 'Untitled';
+                    final fileName =
+                        upload['file_name'] as String? ?? 'Untitled';
                     final sizeText = _formatSize(upload['size_bytes'] as int?);
-                    final timeText = _formatDate(upload['created_at'] as String?);
-                    
+                    final timeText = _formatDate(
+                      upload['created_at'] as String?,
+                    );
+
                     // Look up course code using map
                     final courseIdStr = upload['course_id']?.toString();
-                    final courseCode = coursesMap[courseIdStr] ?? 'Unknown Course';
+                    final courseCode =
+                        coursesMap[courseIdStr] ?? 'Unknown Course';
 
                     final icon = _getIconForFile(fileType);
 
@@ -499,12 +520,17 @@ class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen> with Sing
                         child: Material(
                           color: Colors.transparent,
                           child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
                             leading: Container(
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: AppStyles.accentColor.withValues(alpha: 0.1),
+                                color: AppStyles.accentColor.withValues(
+                                  alpha: 0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
@@ -535,12 +561,17 @@ class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen> with Sing
                               ),
                             ),
                             trailing: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
                                 color: _statusBgColor(status),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: _statusColor(status).withValues(alpha: 0.3),
+                                  color: _statusColor(
+                                    status,
+                                  ).withValues(alpha: 0.3),
                                   width: 1,
                                 ),
                               ),

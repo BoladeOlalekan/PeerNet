@@ -82,7 +82,8 @@ class HomeScreen extends ConsumerWidget {
                                             width: 120,
                                             decoration: BoxDecoration(
                                               color: AppStyles.white,
-                                              borderRadius: BorderRadius.circular(4),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
                                             ),
                                           ),
                                         )
@@ -167,14 +168,19 @@ class HomeScreen extends ConsumerWidget {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: AppStyles.white.withValues(alpha: 0.5),
+                                      color: AppStyles.white.withValues(
+                                        alpha: 0.5,
+                                      ),
                                       width: 2,
                                     ),
                                   ),
                                   child: isLoadingUser
                                       ? Shimmer.fromColors(
-                                          baseColor: AppStyles.white.withValues(alpha: 0.2),
-                                          highlightColor: AppStyles.white.withValues(alpha: 0.5),
+                                          baseColor: AppStyles.white.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                          highlightColor: AppStyles.white
+                                              .withValues(alpha: 0.5),
                                           child: const CircleAvatar(
                                             radius: 32,
                                             backgroundColor: AppStyles.white,
@@ -182,12 +188,17 @@ class HomeScreen extends ConsumerWidget {
                                         )
                                       : CircleAvatar(
                                           radius: 32,
-                                          backgroundColor: AppStyles.transparent,
-                                          backgroundImage: (user.avatarUrl ?? '').isNotEmpty
-                                              ? CachedNetworkImageProvider(user.avatarUrl!)
+                                          backgroundColor:
+                                              AppStyles.transparent,
+                                          backgroundImage:
+                                              (user.avatarUrl ?? '').isNotEmpty
+                                              ? CachedNetworkImageProvider(
+                                                  user.avatarUrl!,
+                                                )
                                               : const NetworkImage(
-                                                  'https://lh3.googleusercontent.com/aida-public/AB6AXuAtUmPCV6_iCOw7mfIDLIbHfyRdhGLNhWrGUWwKzn10lTqztThDu-icL7IiAM75CLZHodix_8vcv77mkcS22DlZWH3GF6agpNnWFM56lErAWXkkILztdTCEadhGWfSyRkAgXp33mRtDq_uYzSceLJmsJ3TLKmiIBQzsfUQ-F9bI4u5iIkhyMDqiQ8_PQL8-B_pBDgmUKDDusHVyuvibsO9n39azqEzIskQ-uQ7T_N_gAEI9eacxj6NEdq_P0AVrkN-GoZpx7C7CZmQ',
-                                                ) as ImageProvider,
+                                                      'https://lh3.googleusercontent.com/aida-public/AB6AXuAtUmPCV6_iCOw7mfIDLIbHfyRdhGLNhWrGUWwKzn10lTqztThDu-icL7IiAM75CLZHodix_8vcv77mkcS22DlZWH3GF6agpNnWFM56lErAWXkkILztdTCEadhGWfSyRkAgXp33mRtDq_uYzSceLJmsJ3TLKmiIBQzsfUQ-F9bI4u5iIkhyMDqiQ8_PQL8-B_pBDgmUKDDusHVyuvibsO9n39azqEzIskQ-uQ7T_N_gAEI9eacxj6NEdq_P0AVrkN-GoZpx7C7CZmQ',
+                                                    )
+                                                    as ImageProvider,
                                         ),
                                 ),
                                 const SizedBox(width: 20),
@@ -209,14 +220,17 @@ class HomeScreen extends ConsumerWidget {
                                       ),
                                       isLoadingUser
                                           ? Shimmer.fromColors(
-                                              baseColor: AppStyles.white.withValues(alpha: 0.2),
-                                              highlightColor: AppStyles.white.withValues(alpha: 0.5),
+                                              baseColor: AppStyles.white
+                                                  .withValues(alpha: 0.2),
+                                              highlightColor: AppStyles.white
+                                                  .withValues(alpha: 0.5),
                                               child: Container(
                                                 height: 20,
                                                 width: 140,
                                                 decoration: BoxDecoration(
                                                   color: AppStyles.white,
-                                                  borderRadius: BorderRadius.circular(4),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
                                                 ),
                                               ),
                                             )
@@ -244,14 +258,17 @@ class HomeScreen extends ConsumerWidget {
                                       ),
                                       isLoadingUser
                                           ? Shimmer.fromColors(
-                                              baseColor: AppStyles.white.withValues(alpha: 0.2),
-                                              highlightColor: AppStyles.white.withValues(alpha: 0.5),
+                                              baseColor: AppStyles.white
+                                                  .withValues(alpha: 0.2),
+                                              highlightColor: AppStyles.white
+                                                  .withValues(alpha: 0.5),
                                               child: Container(
                                                 height: 20,
                                                 width: 80,
                                                 decoration: BoxDecoration(
                                                   color: AppStyles.white,
-                                                  borderRadius: BorderRadius.circular(4),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
                                                 ),
                                               ),
                                             )
@@ -325,31 +342,43 @@ class HomeScreen extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 20),
 
-                                  (isLoadingUser || randomCoursesAsync.isLoading)
+                                  (isLoadingUser ||
+                                          randomCoursesAsync.isLoading)
                                       ? SizedBox(
-                                          height: MediaQuery.of(context).size.height * 0.25,
+                                          height:
+                                              MediaQuery.of(
+                                                context,
+                                              ).size.height *
+                                              0.25,
                                           child: ListView.builder(
                                             scrollDirection: Axis.horizontal,
                                             itemCount: 3,
-                                            itemBuilder: (context, index) => const CourseCardSkeleton(
-                                              width: 160,
-                                              margin: EdgeInsets.only(right: 16, bottom: 8, top: 4),
-                                            ),
+                                            itemBuilder: (context, index) =>
+                                                const CourseCardSkeleton(
+                                                  width: 160,
+                                                  margin: EdgeInsets.only(
+                                                    right: 16,
+                                                    bottom: 8,
+                                                    top: 4,
+                                                  ),
+                                                ),
                                           ),
                                         )
                                       : randomCoursesAsync.when(
                                           data: (courses) {
                                             if (courses.isEmpty) {
                                               return Container(
-                                                padding: const EdgeInsets.all(24),
+                                                padding: const EdgeInsets.all(
+                                                  24,
+                                                ),
                                                 alignment: Alignment.center,
                                                 decoration: BoxDecoration(
                                                   color: AppStyles.inputFill,
-                                                  borderRadius: BorderRadius.circular(
-                                                    16,
-                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
                                                   border: Border.all(
-                                                    color: AppStyles.inputBorder,
+                                                    color:
+                                                        AppStyles.inputBorder,
                                                   ),
                                                 ),
                                                 child: const Text(
@@ -372,22 +401,42 @@ class HomeScreen extends ConsumerWidget {
                                             );
                                           },
                                           loading: () => SizedBox(
-                                            height: MediaQuery.of(context).size.height * 0.25,
+                                            height:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.height *
+                                                0.25,
                                             child: ListView.builder(
                                               scrollDirection: Axis.horizontal,
                                               itemCount: 3,
-                                              itemBuilder: (context, index) => const CourseCardSkeleton(
-                                                width: 160,
-                                                margin: EdgeInsets.only(right: 16, bottom: 8, top: 4),
-                                              ),
+                                              itemBuilder: (context, index) =>
+                                                  const CourseCardSkeleton(
+                                                    width: 160,
+                                                    margin: EdgeInsets.only(
+                                                      right: 16,
+                                                      bottom: 8,
+                                                      top: 4,
+                                                    ),
+                                                  ),
                                             ),
                                           ),
                                           error: (err, st) => SizedBox(
-                                            height: MediaQuery.of(context).size.height * 0.25,
+                                            height:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.height *
+                                                0.25,
                                             child: NetworkErrorWidget(
                                               isCompact: true,
-                                              message: err.toString().replaceAll('Exception: ', ''),
-                                              onRetry: () => ref.invalidate(randomCoursesProvider),
+                                              message: err
+                                                  .toString()
+                                                  .replaceAll(
+                                                    'Exception: ',
+                                                    '',
+                                                  ),
+                                              onRetry: () => ref.invalidate(
+                                                randomCoursesProvider,
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -412,31 +461,43 @@ class HomeScreen extends ConsumerWidget {
                                         if (isLoadingUser) {
                                           return Container(
                                             width: 72,
-                                            margin: const EdgeInsets.only(right: 16),
+                                            margin: const EdgeInsets.only(
+                                              right: 16,
+                                            ),
                                             child: Column(
                                               children: [
                                                 Shimmer.fromColors(
-                                                  baseColor: Colors.grey.shade300,
-                                                  highlightColor: Colors.grey.shade100,
+                                                  baseColor:
+                                                      Colors.grey.shade300,
+                                                  highlightColor:
+                                                      Colors.grey.shade100,
                                                   child: Container(
                                                     width: 64,
                                                     height: 64,
-                                                    decoration: const BoxDecoration(
-                                                      shape: BoxShape.circle,
-                                                      color: AppStyles.white,
-                                                    ),
+                                                    decoration:
+                                                        const BoxDecoration(
+                                                          shape:
+                                                              BoxShape.circle,
+                                                          color:
+                                                              AppStyles.white,
+                                                        ),
                                                   ),
                                                 ),
                                                 const SizedBox(height: 8),
                                                 Shimmer.fromColors(
-                                                  baseColor: Colors.grey.shade300,
-                                                  highlightColor: Colors.grey.shade100,
+                                                  baseColor:
+                                                      Colors.grey.shade300,
+                                                  highlightColor:
+                                                      Colors.grey.shade100,
                                                   child: Container(
                                                     height: 12,
                                                     width: 48,
                                                     decoration: BoxDecoration(
                                                       color: AppStyles.white,
-                                                      borderRadius: BorderRadius.circular(4),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            4,
+                                                          ),
                                                     ),
                                                   ),
                                                 ),
@@ -447,20 +508,25 @@ class HomeScreen extends ConsumerWidget {
 
                                         return Container(
                                           width: 72,
-                                          margin: const EdgeInsets.only(right: 16),
+                                          margin: const EdgeInsets.only(
+                                            right: 16,
+                                          ),
                                           child: Column(
                                             children: [
                                               Container(
                                                 decoration: BoxDecoration(
                                                   shape: BoxShape.circle,
                                                   border: Border.all(
-                                                    color: AppStyles.primaryColor.withValues(alpha: 0.1),
+                                                    color: AppStyles
+                                                        .primaryColor
+                                                        .withValues(alpha: 0.1),
                                                     width: 2,
                                                   ),
                                                 ),
                                                 child: CircleAvatar(
                                                   radius: 30,
-                                                  backgroundColor: AppStyles.inputFill,
+                                                  backgroundColor:
+                                                      AppStyles.inputFill,
                                                   backgroundImage: NetworkImage(
                                                     'https://i.pravatar.cc/150?img=${index + 10}',
                                                   ),
@@ -469,10 +535,12 @@ class HomeScreen extends ConsumerWidget {
                                               const SizedBox(height: 8),
                                               Text(
                                                 'User ${index + 1}',
-                                                style: AppStyles.formLabelStyle.copyWith(
-                                                  fontSize: 12,
-                                                  color: AppStyles.headingColor,
-                                                ),
+                                                style: AppStyles.formLabelStyle
+                                                    .copyWith(
+                                                      fontSize: 12,
+                                                      color: AppStyles
+                                                          .headingColor,
+                                                    ),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                               ),

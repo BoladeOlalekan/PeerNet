@@ -94,8 +94,9 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
 
   Future<void> _pickFile() async {
     try {
-      final file =
-          await ref.read(uploadMaterialControllerProvider.notifier).pickFile();
+      final file = await ref
+          .read(uploadMaterialControllerProvider.notifier)
+          .pickFile();
       if (file == null) return;
 
       final extension = file.path.split('.').last.toLowerCase();
@@ -150,16 +151,18 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
     final courseCode = selectedCourse['course_code'] as String;
 
     try {
-      await ref.read(uploadMaterialControllerProvider.notifier).uploadMaterial(
-        uploaderId: firebaseUser.uid,
-        department: widget.currentUser.department,
-        courseId: _selectedCourseId!,
-        fileType: _selectedFileType!,
-        file: _selectedFile!,
-        level: _parseLevel(widget.currentUser.level),
-        semester: _selectedSemester!,
-        courseCode: courseCode,
-      );
+      await ref
+          .read(uploadMaterialControllerProvider.notifier)
+          .uploadMaterial(
+            uploaderId: firebaseUser.uid,
+            department: widget.currentUser.department,
+            courseId: _selectedCourseId!,
+            fileType: _selectedFileType!,
+            file: _selectedFile!,
+            level: _parseLevel(widget.currentUser.level),
+            semester: _selectedSemester!,
+            courseCode: courseCode,
+          );
 
       final notifier = ref.read(notificationServiceProvider);
       await notifier.showNotification(
@@ -308,10 +311,7 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
         TextFormField(
           readOnly: true,
           initialValue: value,
-          style: const TextStyle(
-            color: AppStyles.mutedText,
-            fontSize: 15,
-          ),
+          style: const TextStyle(color: AppStyles.mutedText, fontSize: 15),
           decoration: AppStyles.inputDecoration(hint: '').copyWith(
             filled: true,
             fillColor: Colors.grey.shade50,
@@ -341,10 +341,9 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
           .toList(),
       onChanged: onChanged,
       style: AppStyles.inputTextStyle,
-      decoration: AppStyles.inputDecoration(hint: hint).copyWith(
-        filled: true,
-        fillColor: Colors.white,
-      ),
+      decoration: AppStyles.inputDecoration(
+        hint: hint,
+      ).copyWith(filled: true, fillColor: Colors.white),
       validator: validator,
     );
   }
@@ -366,10 +365,9 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
           )
           .toList(),
       onChanged: (v) => setState(() => _selectedCourseId = v),
-      decoration: AppStyles.inputDecoration(hint: 'Select Course').copyWith(
-        filled: true,
-        fillColor: Colors.white,
-      ),
+      decoration: AppStyles.inputDecoration(
+        hint: 'Select Course',
+      ).copyWith(filled: true, fillColor: Colors.white),
       validator: (v) => v == null ? 'Please select a course' : null,
     );
   }
@@ -423,9 +421,13 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
                   : 'Tap to browse notes, videos, or Qs',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _selectedFile != null ? AppStyles.accentColor : AppStyles.mutedText,
+                color: _selectedFile != null
+                    ? AppStyles.accentColor
+                    : AppStyles.mutedText,
                 fontSize: 13,
-                fontWeight: _selectedFile != null ? FontWeight.w600 : FontWeight.w400,
+                fontWeight: _selectedFile != null
+                    ? FontWeight.w600
+                    : FontWeight.w400,
               ),
             ),
           ],
@@ -457,16 +459,10 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
                   color: Colors.white,
                 ),
               )
-            : const Icon(
-                FluentSystemIcons.ic_fluent_upload_filled,
-                size: 20,
-              ),
+            : const Icon(FluentSystemIcons.ic_fluent_upload_filled, size: 20),
         label: Text(
           uploadState.isLoading ? 'Uploading...' : 'Submit Material',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -517,7 +513,10 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildReadonlyField("Department", widget.currentUser.department),
+                        _buildReadonlyField(
+                          "Department",
+                          widget.currentUser.department,
+                        ),
                         const SizedBox(height: 16),
                         _buildReadonlyField("Level", widget.currentUser.level),
                         const SizedBox(height: 16),
@@ -542,7 +541,8 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
                           value: _selectedFileType,
                           items: _fileTypes,
                           hint: 'Select File Type',
-                          onChanged: (v) => setState(() => _selectedFileType = v),
+                          onChanged: (v) =>
+                              setState(() => _selectedFileType = v),
                           validator: (v) =>
                               v == null ? 'Please select a file type' : null,
                         ),

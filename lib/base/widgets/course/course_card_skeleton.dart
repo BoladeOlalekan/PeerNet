@@ -6,11 +6,7 @@ class CourseCardSkeleton extends StatelessWidget {
   final double? width;
   final EdgeInsetsGeometry? margin;
 
-  const CourseCardSkeleton({
-    super.key,
-    this.width,
-    this.margin,
-  });
+  const CourseCardSkeleton({super.key, this.width, this.margin});
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +17,7 @@ class CourseCardSkeleton extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppStyles.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppStyles.inputBorder,
-          width: 1,
-        ),
+        border: Border.all(color: AppStyles.inputBorder, width: 1),
         boxShadow: [
           BoxShadow(
             color: AppStyles.black.withValues(alpha: 0.04),

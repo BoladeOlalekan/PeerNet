@@ -41,7 +41,11 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
                         shape: BoxShape.circle,
                         border: Border.all(color: AppStyles.inputBorder),
                       ),
-                      child: const Icon(FluentSystemIcons.ic_fluent_ios_arrow_left_filled, size: 20, color: AppStyles.headingColor),
+                      child: const Icon(
+                        FluentSystemIcons.ic_fluent_ios_arrow_left_filled,
+                        size: 20,
+                        color: AppStyles.headingColor,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -74,14 +78,17 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
                       color: AppStyles.primaryColor.withValues(alpha: 0.3),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
-                    )
+                    ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
@@ -115,11 +122,13 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
                           label: course.department,
                         ),
                         _OverviewStat(
-                          icon: FluentSystemIcons.ic_fluent_classification_regular,
+                          icon: FluentSystemIcons
+                              .ic_fluent_classification_regular,
                           label: "${course.level} Level",
                         ),
                         _OverviewStat(
-                          icon: FluentSystemIcons.ic_fluent_calendar_3_day_regular,
+                          icon: FluentSystemIcons
+                              .ic_fluent_calendar_3_day_regular,
                           label: "${course.semester} Semester",
                         ),
                       ],
@@ -152,15 +161,19 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOutCirc,
                           decoration: BoxDecoration(
-                            color: isSelected ? AppStyles.primaryColor : Colors.transparent,
+                            color: isSelected
+                                ? AppStyles.primaryColor
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(26),
                             boxShadow: isSelected
                                 ? [
                                     BoxShadow(
-                                      color: AppStyles.primaryColor.withValues(alpha: 0.3),
+                                      color: AppStyles.primaryColor.withValues(
+                                        alpha: 0.3,
+                                      ),
                                       blurRadius: 8,
                                       offset: const Offset(0, 4),
-                                    )
+                                    ),
                                   ]
                                 : [],
                           ),
@@ -168,8 +181,12 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
                           child: Text(
                             tabs[index],
                             style: TextStyle(
-                              color: isSelected ? Colors.white : AppStyles.labelText,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppStyles.labelText,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
                               fontSize: 13,
                             ),
                             maxLines: 1,
@@ -246,7 +263,10 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
                 const SizedBox(height: 16),
                 Text(
                   "Error loading resources",
-                  style: TextStyle(color: Colors.red.shade400, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    color: Colors.red.shade400,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -255,19 +275,26 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
 
         final allResources = snapshot.data ?? [];
         final filtered = allResources
-          .where((r) => r['file_type'] == tabType)
-          .toList();
+            .where((r) => r['file_type'] == tabType)
+            .toList();
 
         if (filtered.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(FluentSystemIcons.ic_fluent_folder_open_regular, size: 64, color: AppStyles.inputBorder),
+                const Icon(
+                  FluentSystemIcons.ic_fluent_folder_open_regular,
+                  size: 64,
+                  color: AppStyles.inputBorder,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   "No ${tabType.replaceAll('_', ' ')}s available yet.",
-                  style: const TextStyle(color: AppStyles.mutedText, fontSize: 16),
+                  style: const TextStyle(
+                    color: AppStyles.mutedText,
+                    fontSize: 16,
+                  ),
                 ),
               ],
             ),
@@ -287,9 +314,10 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
           itemBuilder: (context, idx) {
             final resource = filtered[idx];
             return ResourceCard(
-              fileName: resource['file_name'] ?? resource['fileName'] ?? 'Untitled',
+              fileName:
+                  resource['file_name'] ?? resource['fileName'] ?? 'Untitled',
               fileType: resource['file_type'] ?? 'note',
-              downloadUrl: resource['download_url'] ?? '', 
+              downloadUrl: resource['download_url'] ?? '',
               youtubeUrl: resource['youtube_url'] ?? '',
             );
           },
