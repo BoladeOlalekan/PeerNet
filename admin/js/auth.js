@@ -22,12 +22,12 @@ document.addEventListener("DOMContentLoaded", () => {
       btnLoader.classList.remove("hidden");
 
       try {
-        if (typeof supabase === 'undefined' || !supabase.auth) {
+        if (typeof supabaseClient === 'undefined' || !supabaseClient.auth) {
           throw new Error("Supabase is not initialized. Please check your internet connection and console logs.");
         }
 
         // Sign in via Supabase Auth
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
           email,
           password
         });
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }, 1000);
         } else {
           // If authenticated but not in the admins table, sign out
-          await supabase.auth.signOut();
+          await supabaseClient.auth.signOut();
           throw new Error("Access denied. You are not registered as an administrator in the database.");
         }
       } catch (err) {
@@ -62,8 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Safe auto-redirect check
   async function checkSessionAndRedirect() {
     try {
-      if (typeof supabase !== 'undefined' && supabase.auth) {
-        const { data: { session } } = await supabase.auth.getSession();
+      if (typeof supabaseClient !== 'undefined' && supabaseClient.auth) {
+        const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
           // Verify if email is admin
           const isAdmin = await checkIsAdmin(session.user.email);
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Helper function to check if email exists in public.admins table
 async function checkIsAdmin(email) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("admins")
       .select("email")
       .eq("email", email)
@@ -103,4 +103,3 @@ async function checkIsAdmin(email) {
     return false;
   }
 }
-

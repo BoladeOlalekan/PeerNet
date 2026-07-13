@@ -15,7 +15,7 @@ async function fetchDepartments() {
   `;
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("departments")
       .select("*")
       .order("name", { ascending: true });
@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!name) return;
 
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from("departments")
           .insert([{ name }]);
 
@@ -100,7 +100,7 @@ function confirmDeleteDept(id, name) {
     isDanger: true,
     onConfirm: async () => {
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from("departments")
           .delete()
           .eq("id", id);
@@ -120,7 +120,7 @@ function confirmDeleteDept(id, name) {
 // Global helper to populate departments select/filter elements
 async function loadDepartmentsIntoDropdowns() {
   try {
-    const { data: departments, error } = await supabase
+    const { data: departments, error } = await supabaseClient
       .from("departments")
       .select("*")
       .order("name", { ascending: true });

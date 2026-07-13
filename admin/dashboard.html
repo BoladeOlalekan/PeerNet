@@ -20,7 +20,7 @@
       <div class="sidebar-header">
         <div class="sidebar-logo">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M11.25 4.533A9.707 9.707 0 0 0 6 3a9.735 9.735 0 0 0-3.25.555.75.75 0 0 0-.5.707v14.25a.75.75 0 0 0 1 .707A8.237 8.237 0 0 1 6 18.75c1.995 0 3.823.708 5.25 1.89.135.113.305.16c.465.16.95-.142.95-.64V4.533a.75.75 0 0 0-.95-.707ZM12.75 20c0 .498.485.8.95.64 1.427-1.182 3.255-1.89 5.25-1.89a8.237 8.237 0 0 1 2.75.455.75.75 0 0 0 1-.707V4.262a.75.75 0 0 0-.5-.707A9.735 9.735 0 0 0 18 3a9.707 9.707 0 0 0-5.25 1.533v15.467Z" />
+            <path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
           </svg>
         </div>
         <h2>PeerNet Admin</h2>
@@ -461,7 +461,7 @@
     // App Initialization on Load
     document.addEventListener('DOMContentLoaded', async () => {
       // Check auth status
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabaseClient.auth.getSession();
       if (!session) {
         window.location.href = "index.html";
         return;
@@ -473,7 +473,7 @@
 
       // Sign Out Button
       document.getElementById('logout-btn').addEventListener('click', async () => {
-        await supabase.auth.signOut();
+        await supabaseClient.auth.signOut();
         window.location.href = "index.html";
       });
 

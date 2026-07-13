@@ -18,7 +18,7 @@ async function fetchPendingResources() {
 
   try {
     // Fetch pending resources and join with courses to get course info
-    const { data: resources, error } = await supabase
+    const { data: resources, error } = await supabaseClient
       .from("resources")
       .select(`
         id,
@@ -131,7 +131,7 @@ async function fetchPendingResources() {
 
 async function moderateResource(id, status) {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from("resources")
       .update({ approval_status: status })
       .eq("id", id);
@@ -151,7 +151,7 @@ function previewResource(storagePath) {
     showToast("Storage path missing.", "error");
     return;
   }
-  const { data } = supabase.storage.from("resources").getPublicUrl(storagePath);
+  const { data } = supabaseClient.storage.from("resources").getPublicUrl(storagePath);
   if (data && data.publicUrl) {
     window.open(data.publicUrl, "_blank");
   } else {
@@ -190,7 +190,7 @@ async function fetchAllResources() {
   `;
 
   try {
-    let query = supabase
+    let query = supabaseClient
       .from("resources")
       .select(`
         id,
@@ -303,7 +303,7 @@ function confirmDeleteResource(id, storagePath, filename) {
     onConfirm: async () => {
       try {
         // 1. Delete DB record
-        const { error: dbError } = await supabase
+        const { error: dbError } = await supabaseClient
           .from("resources")
           .delete()
           .eq("id", id);
@@ -312,7 +312,7 @@ function confirmDeleteResource(id, storagePath, filename) {
 
         // 2. Delete storage file if path exists
         if (storagePath) {
-          const { error: storageError } = await supabase.storage
+          const { error: storageError } = await supabaseClient.storage
             .from("resources")
             .remove([storagePath]);
           
@@ -365,7 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
     uploadCourse.innerHTML = `<option value="" disabled selected>Loading courses...</option>`;
 
     try {
-      const { data: courses, error } = await supabase
+      const { data: courses, error } = await supabaseClient
         .from("courses")
         .select("id, course_code, course_name")
         .eq("department", dept)
@@ -517,7 +517,7 @@ document.addEventListener("DOMContentLoaded", () => {
           storagePath = `resources/${cleanDept}/${cleanLevel}/${cleanSemester}/${cleanCourse}/${storageFolder}/${timestamp}_${fileName}`;
 
           // Upload binary to Supabase storage
-          const { error: uploadError } = await supabase.storage
+          const { error: uploadError } = await supabaseClient.storage
             .from("resources")
             .upload(storagePath, selectedUploadFile, {
               cacheControl: '3600',
@@ -533,7 +533,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Insert metadata row
         const dbFileType = type; // matching note, past_question, video
-        const { error: dbError } = await supabase
+        const { error: dbError } = await supabaseClient
           .from("resources")
           .insert([{
             course_id: courseId,

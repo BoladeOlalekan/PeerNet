@@ -19,7 +19,7 @@ async function fetchCoursesList() {
   `;
 
   try {
-    let query = supabase
+    let query = supabaseClient
       .from("courses")
       .select("*");
 
@@ -116,7 +116,7 @@ function confirmDeleteCourse(id, code) {
     isDanger: true,
     onConfirm: async () => {
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from("courses")
           .delete()
           .eq("id", id);
@@ -165,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         if (id) {
           // Update
-          const { error } = await supabase
+          const { error } = await supabaseClient
             .from("courses")
             .update({
               course_code: code,
@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showToast(`Course "${code}" updated successfully!`, "success");
         } else {
           // Create
-          const { error } = await supabase
+          const { error } = await supabaseClient
             .from("courses")
             .insert([{
               course_code: code,
