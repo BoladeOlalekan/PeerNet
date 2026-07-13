@@ -1,23 +1,11 @@
 // admin/js/auth.js
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("login-form");
   const submitBtn = document.getElementById("submit-btn");
 
-  // If on login page, check if already logged in and redirect to dashboard
-  if (window.location.pathname.endsWith("index.html") || window.location.pathname.endsWith("/") || window.location.pathname === "") {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      // Verify if email is admin
-      const isAdmin = await checkIsAdmin(session.user.email);
-      if (isAdmin) {
-        window.location.href = "dashboard.html";
-        return;
-      }
-    }
-  }
-
-  // Handle Login Form Submission
+  // ALWAYS register the form submission handler first!
+  // This guarantees that e.preventDefault() is called and prevents page reload/clear.
   if (loginForm) {
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -34,6 +22,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       btnLoader.classList.remove("hidden");
 
       try {
+        if (typeof supabase === 'undefined' || !supabase.auth) {
+          throw new Error("Supabase is not initialized. Please check your internet connection and console logs.");
+        }
+
         // Sign in via Supabase Auth
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
@@ -53,9 +45,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else {
           // If authenticated but not in the admins table, sign out
           await supabase.auth.signOut();
-          throw new Error("Access denied. You are not registered as an administrator.");
+          throw new Error("Access denied. You are not registered as an administrator in the database.");
         }
       } catch (err) {
+        console.error("Login Error:", err);
         showToast(err.message || "Authentication failed. Please check your credentials.", "error");
         
         // Reset button state
@@ -64,6 +57,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         btnLoader.classList.add("hidden");
       }
     });
+  }
+
+  // Safe auto-redirect check
+  async function checkSessionAndRedirect() {
+    try {
+      if (typeof supabase !== 'undefined' && supabase.auth) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          // Verify if email is admin
+          const isAdmin = await checkIsAdmin(session.user.email);
+          if (isAdmin) {
+            window.location.href = "dashboard.html";
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error during auto-redirect check:", e);
+    }
+  }
+
+  // Check path and redirect
+  const path = window.location.pathname;
+  if (path.endsWith("index.html") || path.endsWith("/") || path === "") {
+    checkSessionAndRedirect();
   }
 });
 
@@ -86,3 +103,4 @@ async function checkIsAdmin(email) {
     return false;
   }
 }
+
