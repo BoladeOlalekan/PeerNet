@@ -576,9 +576,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const filterStatus = document.getElementById("resource-filter-status");
   const filterDept = document.getElementById("resource-filter-dept");
   const refreshBtn = document.getElementById("resource-refresh-btn");
+  const pendingRefreshBtn = document.getElementById("pending-refresh-btn");
 
   if (searchInput) searchInput.addEventListener("input", fetchAllResources);
   if (filterStatus) filterStatus.addEventListener("change", fetchAllResources);
   if (filterDept) filterDept.addEventListener("change", fetchAllResources);
   if (refreshBtn) refreshBtn.addEventListener("click", fetchAllResources);
+  if (pendingRefreshBtn) pendingRefreshBtn.addEventListener("click", fetchPendingResources);
 });
