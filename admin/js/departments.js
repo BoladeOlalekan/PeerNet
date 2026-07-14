@@ -183,6 +183,20 @@ async function loadDepartmentsIntoDropdowns() {
       courseListFilterDept.value = currentValue;
     }
 
+    // Dropdown in Mass Upload form
+    const massUploadDept = document.getElementById("mass-upload-dept");
+    if (massUploadDept) {
+      const currentValue = massUploadDept.value;
+      massUploadDept.innerHTML = `<option value="" disabled selected>Select Department</option>`;
+      departments.forEach(dept => {
+        const opt = document.createElement("option");
+        opt.value = dept.name;
+        opt.innerText = dept.name;
+        massUploadDept.appendChild(opt);
+      });
+      massUploadDept.value = currentValue;
+    }
+
   } catch (err) {
     console.error("Failed to populate department dropdowns:", err);
   }
