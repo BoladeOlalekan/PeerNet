@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,69 +8,474 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Stylesheet -->
+
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom CSS for animations and custom loaders -->
   <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Light-mode styles for dynamically injected JS elements -->
+  <style>
+    /* Sidebar Navigation Active State */
+    .nav-item.active {
+      background-color: #ecfdf5;
+      /* emerald-50 */
+      color: #047857;
+      /* emerald-700 */
+      font-weight: 600;
+      border: 1px solid rgba(16, 185, 129, 0.15);
+    }
+
+    .nav-item.active svg {
+      color: #047857 !important;
+    }
+
+    /* Dynamically Injected Pending Review Cards */
+    .pending-card {
+      background-color: #ffffff;
+      border: 1px solid #f1f5f9;
+      /* slate-100 */
+      border-radius: 1.25rem;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .pending-card:hover {
+      transform: translateY(-2px);
+      border-color: #d1fae5;
+      /* emerald-100 */
+      box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .file-info-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+    }
+
+    .file-icon {
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 0.75rem;
+      background-color: #f8fafc;
+      /* slate-50 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #059669;
+      /* emerald-600 */
+      border: 1px solid #f1f5f9;
+      flex-shrink: 0;
+    }
+
+    .file-icon svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    .file-meta-top {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-weight: 600;
+      font-size: 0.925rem;
+      color: #1e293b;
+      /* slate-800 */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-type-label {
+      font-size: 0.65rem;
+      color: #94a3b8;
+      /* slate-400 */
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.625rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .badge-pending {
+      background-color: #fef3c7;
+      /* amber-100 */
+      color: #d97706;
+      /* amber-600 */
+      border: 1px solid rgba(217, 119, 6, 0.15);
+    }
+
+    .badge-approved {
+      background-color: #d1fae5;
+      /* emerald-100 */
+      color: #059669;
+      /* emerald-600 */
+      border: 1px solid rgba(5, 150, 105, 0.15);
+    }
+
+    .badge-rejected {
+      background-color: #fee2e2;
+      /* red-100 */
+      color: #dc2626;
+      /* red-600 */
+      border: 1px solid rgba(220, 38, 38, 0.15);
+    }
+
+    .card-details {
+      background-color: #f8fafc;
+      /* slate-50 */
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      border: 1px solid #f1f5f9;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .detail-label {
+      color: #64748b;
+      /* slate-500 */
+      font-weight: 500;
+    }
+
+    .detail-val {
+      font-weight: 600;
+      color: #334155;
+      /* slate-700 */
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: auto;
+    }
+
+    /* Dynamically Injected Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      outline: none;
+      gap: 0.5rem;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .btn-primary {
+      background-color: #059669;
+      /* emerald-600 */
+      color: #121212;
+    }
+
+    .btn-primary:hover {
+      background-color: #047857;
+      /* emerald-700 */
+    }
+
+    .btn-secondary {
+      background-color: #ffffff;
+      color: #475569;
+      /* slate-600 */
+      border: 1px solid #e2e8f0;
+      /* slate-200 */
+    }
+
+    .btn-secondary:hover {
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+
+    .btn-danger {
+      background-color: #ef4444;
+      /* red-500 */
+      color: #ffffff;
+    }
+
+    .btn-danger:hover {
+      background-color: #dc2626;
+      /* red-600 */
+    }
+
+    /* Dynamically Injected Table Action Buttons */
+    .action-buttons-cell {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #94a3b8;
+      /* slate-400 */
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .action-btn:hover {
+      background-color: #f1f5f9;
+      color: #334155;
+    }
+
+    .action-btn.btn-delete-item:hover {
+      color: #ef4444;
+      background-color: #fee2e2;
+    }
+
+    .action-btn.btn-edit-item:hover {
+      color: #059669;
+      background-color: #d1fae5;
+    }
+
+    /* Empty states */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      background-color: #ffffff;
+      border: 1px solid #f1f5f9;
+      border-radius: 1rem;
+      color: #64748b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      grid-column: 1 / -1;
+    }
+
+    .empty-state svg {
+      width: 3.5rem;
+      height: 3.5rem;
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+    }
+
+    .empty-state h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+      font-size: 0.875rem;
+    }
+
+    /* Modal Styling Classes dynamically updated by JS */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+    }
+
+    .modal-card {
+      background-color: #ffffff;
+      border: 1px solid #f1f5f9;
+      border-radius: 1.25rem;
+      padding: 2rem;
+      width: 90%;
+      max-width: 480px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .modal-icon {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .modal-icon-danger {
+      background-color: #fee2e2;
+      color: #ef4444;
+    }
+
+    .modal-icon-primary {
+      background-color: #d1fae5;
+      color: #059669;
+    }
+
+    .modal-header h3 {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .modal-body {
+      color: #475569;
+      font-size: 0.875rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+  </style>
+
   <!-- Supabase Client JS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
-  <div class="app-container">
+
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
+  <div class="flex min-h-screen">
     <!-- Sidebar Navigation -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-logo">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+    <aside
+      class="w-[280px] bg-white border-r border-slate-100 flex flex-col fixed top-0 bottom-0 left-0 z-40 shadow-[4px_0_24px_rgba(0,0,0,0.015)]">
+      <div class="p-6 flex items-center gap-3 border-b border-slate-50">
+        <div
+          class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center border border-emerald-100/60">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5.5 h-5.5">
+            <path
+              d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
           </svg>
         </div>
-        <h2>PeerNet Admin</h2>
+        <h2 class="font-display text-lg font-bold text-slate-800 tracking-tight">PeerNet Admin</h2>
       </div>
 
-      <nav class="sidebar-nav">
-        <a class="nav-item active" data-tab="pending">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      <nav class="p-4 space-y-1.5 flex-grow overflow-y-auto">
+        <a class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium text-sm transition-all duration-200 cursor-pointer active"
+          data-tab="pending">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+            class="w-5 h-5 text-slate-400">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           Pending Review
         </a>
-        <a class="nav-item" data-tab="resources">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        <a class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium text-sm transition-all duration-200 cursor-pointer"
+          data-tab="resources">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+            class="w-5 h-5 text-slate-400">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
           All Resources
         </a>
-        <a class="nav-item" data-tab="upload">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+        <a class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium text-sm transition-all duration-200 cursor-pointer"
+          data-tab="upload">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+            class="w-5 h-5 text-slate-400">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
           </svg>
           Admin Upload
         </a>
-        <a class="nav-item" data-tab="departments">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        <a class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium text-sm transition-all duration-200 cursor-pointer"
+          data-tab="departments">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+            class="w-5 h-5 text-slate-400">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
           Departments
         </a>
-        <a class="nav-item" data-tab="courses">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        <a class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium text-sm transition-all duration-200 cursor-pointer"
+          data-tab="courses">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+            class="w-5 h-5 text-slate-400">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
           Courses
         </a>
       </nav>
 
-      <div class="sidebar-footer">
-        <div class="user-profile-bar">
-          <div class="user-avatar-placeholder" id="user-avatar-initials">A</div>
-          <div class="user-info">
-            <span class="user-email" id="user-email-display">admin@futa.edu.ng</span>
-            <span class="user-role">Administrator</span>
+      <div class="p-4 border-t border-slate-50 bg-slate-50/50">
+        <div class="flex items-center gap-3 p-2 rounded-xl mb-3">
+          <div
+            class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 font-bold text-sm flex items-center justify-center"
+            id="user-avatar-initials">A</div>
+          <div class="flex flex-col min-w-0">
+            <span class="text-xs font-semibold text-slate-800 truncate" id="user-email-display">admin@futa.edu.ng</span>
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Administrator</span>
           </div>
         </div>
-        <button id="logout-btn" class="btn-logout">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        <button id="logout-btn"
+          class="w-full py-2.5 px-4 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-red-100/50 transition-all duration-200 cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
           Sign Out
         </button>
@@ -77,21 +483,21 @@
     </aside>
 
     <!-- Main Content Panel -->
-    <main class="main-content">
-      
+    <main class="flex-grow min-h-screen pl-[312px] pr-8 py-8 lg:pl-[320px] lg:pr-10 lg:py-10">
+
       <!-- ==========================================
            1. PENDING REVIEW VIEW
            ========================================== -->
       <section id="tab-pending" class="tab-content active">
-        <div class="content-header">
-          <h1>Pending Review Queue</h1>
-          <p>Moderate and approve materials shared by FUTA students</p>
+        <div class="mb-8">
+          <h1 class="font-display text-3xl font-extrabold text-slate-500 tracking-tight mb-2">Pending Review Queue</h1>
+          <p class="text-slate-500 text-sm">Moderate and approve materials shared by FUTA students</p>
         </div>
-        <div class="pending-grid" id="pending-container">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="pending-container">
           <!-- Pending resource items dynamically rendered here -->
           <div class="empty-state">
             <div class="btn-loader"></div>
-            <p>Loading pending reviews...</p>
+            <p class="mt-4">Loading pending reviews...</p>
           </div>
         </div>
       </section>
@@ -100,48 +506,73 @@
            2. ALL RESOURCES VIEW
            ========================================== -->
       <section id="tab-resources" class="tab-content">
-        <div class="content-header">
-          <h1>Manage Resources</h1>
-          <p>Browse and delete uploaded student materials</p>
+        <div class="mb-8">
+          <h1 class="font-display text-3xl font-extrabold text-slate-800 tracking-tight mb-2">Manage Resources</h1>
+          <p class="text-slate-500 text-sm">Browse and delete uploaded student materials</p>
         </div>
-        
-        <div class="table-wrapper">
-          <div class="table-header-filters">
-            <div class="filter-group">
-              <input type="text" id="resource-search" class="search-input" placeholder="Search by filename or course...">
-              <select id="resource-filter-status">
+
+        <div class="bg-white border border-slate-100 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.01)] overflow-hidden">
+          <div
+            class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center p-5 border-b border-slate-100 gap-4 bg-slate-50/50">
+            <div class="flex flex-wrap items-center gap-3">
+              <input type="text" id="resource-search"
+                class="w-full sm:w-[280px] bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-700 placeholder-slate-400 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all duration-200"
+                placeholder="Search by filename or course...">
+
+              <select id="resource-filter-status"
+                class="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-600 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all duration-200">
                 <option value="all">All Statuses</option>
                 <option value="approved">Approved</option>
                 <option value="pending">Pending</option>
                 <option value="rejected">Rejected</option>
               </select>
-              <select id="resource-filter-dept">
+
+              <select id="resource-filter-dept"
+                class="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-600 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all duration-200">
                 <option value="all">All Departments</option>
               </select>
             </div>
-            <button id="resource-refresh-btn" class="btn btn-secondary">
+            <button id="resource-refresh-btn"
+              class="px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
               Refresh Data
             </button>
           </div>
-          
-          <table id="resources-table">
-            <thead>
-              <tr>
-                <th>File Name</th>
-                <th>Course</th>
-                <th>Department</th>
-                <th>Uploader</th>
-                <th>Size</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Uploaded At</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="resources-list">
-              <!-- Dynamically populated rows -->
-            </tbody>
-          </table>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm" id="resources-table">
+              <thead>
+                <tr class="border-b border-slate-100">
+                  <th class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-6 py-4">File
+                    Name</th>
+                  <th class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-6 py-4">Course
+                  </th>
+                  <th class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-6 py-4">
+                    Department</th>
+                  <th class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-6 py-4">
+                    Uploader</th>
+                  <th class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-6 py-4">Size
+                  </th>
+                  <th class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-6 py-4">Type
+                  </th>
+                  <th class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-6 py-4">Status
+                  </th>
+                  <th class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-6 py-4">
+                    Uploaded At</th>
+                  <th
+                    class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-6 py-4 text-right">
+                    Actions</th>
+                </tr>
+              </thead>
+              <tbody id="resources-list" class="divide-y divide-slate-100 text-slate-700">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -149,25 +580,30 @@
            3. ADMIN UPLOAD VIEW
            ========================================== -->
       <section id="tab-upload" class="tab-content">
-        <div class="content-header">
-          <h1>Admin Upload</h1>
-          <p>Add resources directly (auto-approved on submission)</p>
+        <div class="mb-8">
+          <h1 class="font-display text-3xl font-extrabold text-slate-800 tracking-tight mb-2">Admin Upload</h1>
+          <p class="text-slate-500 text-sm">Add resources directly (auto-approved on submission)</p>
         </div>
 
-        <div class="content-row">
-          <div class="card-box">
-            <h3>Resource Upload Form</h3>
-            <form id="admin-upload-form">
-              <div class="form-group">
-                <label for="upload-dept">Department</label>
-                <select id="upload-dept" required>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          <div class="bg-white border border-slate-100 rounded-2xl p-6 lg:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+            <h3 class="font-display text-lg font-bold text-slate-800 pb-4 border-b border-slate-100 mb-6">Resource
+              Upload Form</h3>
+            <form id="admin-upload-form" class="space-y-5">
+              <div>
+                <label for="upload-dept"
+                  class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Department</label>
+                <select id="upload-dept" required
+                  class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200">
                   <option value="" disabled selected>Select Department</option>
                 </select>
               </div>
 
-              <div class="form-group">
-                <label for="upload-level">Level</label>
-                <select id="upload-level" required>
+              <div>
+                <label for="upload-level"
+                  class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Level</label>
+                <select id="upload-level" required
+                  class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200">
                   <option value="" disabled selected>Select Level</option>
                   <option value="100">100 Level</option>
                   <option value="200">200 Level</option>
@@ -177,25 +613,31 @@
                 </select>
               </div>
 
-              <div class="form-group">
-                <label for="upload-semester">Semester</label>
-                <select id="upload-semester" required>
+              <div>
+                <label for="upload-semester"
+                  class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Semester</label>
+                <select id="upload-semester" required
+                  class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200">
                   <option value="" disabled selected>Select Semester</option>
                   <option value="First">First Semester</option>
                   <option value="Second">Second Semester</option>
                 </select>
               </div>
 
-              <div class="form-group">
-                <label for="upload-course">Course</label>
-                <select id="upload-course" required disabled>
+              <div>
+                <label for="upload-course"
+                  class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Course</label>
+                <select id="upload-course" required disabled
+                  class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed">
                   <option value="" disabled selected>Select Course (Choose Department & Level first)</option>
                 </select>
               </div>
 
-              <div class="form-group">
-                <label for="upload-file-type">File Type</label>
-                <select id="upload-file-type" required>
+              <div>
+                <label for="upload-file-type"
+                  class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">File Type</label>
+                <select id="upload-file-type" required
+                  class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200">
                   <option value="note">Note / Slides</option>
                   <option value="past_question">Past Question</option>
                   <option value="video">Video Lecture Link / Reference</option>
@@ -203,52 +645,70 @@
               </div>
 
               <!-- Input for YouTube Video if Type is Video -->
-              <div class="form-group hidden" id="youtube-url-group">
-                <label for="upload-youtube-url">YouTube Video URL</label>
-                <input type="text" id="upload-youtube-url" placeholder="https://www.youtube.com/watch?v=...">
+              <div class="hidden space-y-2" id="youtube-url-group">
+                <label for="upload-youtube-url"
+                  class="block text-xs font-bold text-slate-500 uppercase tracking-wider">YouTube Video URL</label>
+                <input type="text" id="upload-youtube-url"
+                  class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200"
+                  placeholder="https://www.youtube.com/watch?v=...">
               </div>
 
               <!-- Input for File Upload -->
-              <div class="form-group" id="file-select-group">
-                <label>Resource File</label>
-                <div class="file-select-zone" id="file-select-zone">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              <div class="space-y-2" id="file-select-group">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Resource File</label>
+                <div
+                  class="border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-emerald-50/20 hover:border-emerald-500/40 rounded-xl p-8 text-center cursor-pointer transition-all duration-200 file-select-zone"
+                  id="file-select-zone">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    stroke-width="2" class="w-10 h-10 text-slate-400 mx-auto mb-3">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  <p class="file-select-text">Drag & drop your file here or click to browse</p>
-                  <p class="file-select-subtext">PDF, DOCX, PPTX, or Image (Max 50MB)</p>
+                  <p class="text-sm font-semibold text-slate-700">Drag & drop your file here or click to browse</p>
+                  <p class="text-xs text-slate-400 mt-1">PDF, DOCX, PPTX, or Image (Max 50MB)</p>
                   <input type="file" id="upload-file-input" class="hidden">
                 </div>
-                
-                <div class="selected-file-display hidden" id="selected-file-display">
-                  <div class="selected-file-details">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+
+                <div
+                  class="hidden flex justify-between items-center bg-slate-50 border border-slate-200/80 rounded-xl p-4 transition-all duration-200"
+                  id="selected-file-display">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                      stroke-width="2" class="w-6 h-6 text-emerald-600 flex-shrink-0">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <div>
-                      <div class="selected-file-name" id="selected-file-name">filename.pdf</div>
+                    <div class="min-w-0">
+                      <div class="text-xs font-semibold text-slate-700 truncate max-w-[200px]" id="selected-file-name">
+                        filename.pdf</div>
                     </div>
                   </div>
-                  <span class="remove-selected-file" id="remove-file-btn">Remove</span>
+                  <span class="text-xs font-bold text-red-500 hover:text-red-700 cursor-pointer"
+                    id="remove-file-btn">Remove</span>
                 </div>
               </div>
 
-              <button type="submit" id="upload-submit-btn" class="btn btn-primary btn-block">
+              <button type="submit" id="upload-submit-btn"
+                class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl text-sm font-semibold shadow-lg shadow-emerald-600/10 hover:shadow-xl hover:shadow-emerald-600/20 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed">
                 <span class="btn-text">Upload & Approve Resource</span>
                 <div class="btn-loader hidden"></div>
               </button>
             </form>
           </div>
-          
-          <div class="card-box">
-            <h3>Upload Guidelines</h3>
-            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 12px;">
-              Admin-uploaded resources bypass the approval workflow. They are instantly set to <strong>Approved</strong> and will be downloadable by FUTA students in the app.
+
+          <div class="bg-white border border-slate-100 rounded-2xl p-6 lg:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+            <h3 class="font-display text-lg font-bold text-slate-800 pb-4 border-b border-slate-100 mb-6">Upload
+              Guidelines</h3>
+            <p class="text-slate-500 text-sm leading-relaxed mb-5">
+              Admin-uploaded resources bypass the student approval workflow. They are instantly set to <strong
+                class="text-emerald-600">Approved</strong> status and will be immediately downloadable by FUTA students
+              in the app.
             </p>
-            <ul style="color: var(--text-secondary); font-size: 14px; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+            <ul class="text-slate-500 text-sm list-disc pl-5 space-y-3">
               <li>Please double-check course selection before uploading.</li>
               <li>Ensure the PDF/Slides file name is clean and descriptive.</li>
-              <li>For <strong>Video Lectures</strong>, upload a placeholder link or file metadata and provide a valid YouTube link.</li>
+              <li>For <strong class="text-slate-700">Video Lectures</strong>, upload a placeholder link or file metadata
+                and provide a valid YouTube link.</li>
             </ul>
           </div>
         </div>
@@ -258,38 +718,48 @@
            4. DEPARTMENTS VIEW
            ========================================== -->
       <section id="tab-departments" class="tab-content">
-        <div class="content-header">
-          <h1>Manage Departments</h1>
-          <p>Add and remove dynamic departments for student signup and courses</p>
+        <div class="mb-8">
+          <h1 class="font-display text-3xl font-extrabold text-slate-800 tracking-tight mb-2">Manage Departments</h1>
+          <p class="text-slate-500 text-sm">Add and remove dynamic departments for student signup and courses</p>
         </div>
 
-        <div class="content-row">
-          <div class="card-box">
-            <h3>Add New Department</h3>
-            <form id="add-dept-form">
-              <div class="form-group">
-                <label for="new-dept-name">Department Name</label>
-                <input type="text" id="new-dept-name" required placeholder="e.g. Computer Science" autocomplete="off">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          <div class="bg-white border border-slate-100 rounded-2xl p-6 lg:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+            <h3 class="font-display text-lg font-bold text-slate-800 pb-4 border-b border-slate-100 mb-6">Add New
+              Department</h3>
+            <form id="add-dept-form" class="space-y-4">
+              <div>
+                <label for="new-dept-name"
+                  class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Department Name</label>
+                <input type="text" id="new-dept-name" required placeholder="e.g. Computer Science" autocomplete="off"
+                  class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200">
               </div>
-              <button type="submit" class="btn btn-primary">
+              <button type="submit"
+                class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-md transition-all duration-200 cursor-pointer">
                 Add Department
               </button>
             </form>
           </div>
 
-          <div class="card-box">
-            <h3>Available Departments</h3>
-            <table style="width: 100%;">
-              <thead>
-                <tr>
-                  <th>Department Name</th>
-                  <th style="text-align: right;">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="departments-list">
-                <!-- Dynamically populated departments -->
-              </tbody>
-            </table>
+          <div class="bg-white border border-slate-100 rounded-2xl p-6 lg:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+            <h3 class="font-display text-lg font-bold text-slate-800 pb-4 border-b border-slate-100 mb-6">Available
+              Departments</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr class="border-b border-slate-100">
+                    <th class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-6 py-4">
+                      Department Name</th>
+                    <th
+                      class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-6 py-4 text-right">
+                      Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="departments-list" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Dynamically populated departments -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -298,39 +768,50 @@
            5. COURSES VIEW
            ========================================== -->
       <section id="tab-courses" class="tab-content">
-        <div class="content-header">
-          <h1>Manage Courses</h1>
-          <p>Create, update, and delete course catalogs</p>
+        <div class="mb-8">
+          <h1 class="font-display text-3xl font-extrabold text-slate-800 tracking-tight mb-2">Manage Courses</h1>
+          <p class="text-slate-500 text-sm">Create, update, and delete course catalogs</p>
         </div>
 
-        <div class="content-row">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <!-- Add/Edit Course form -->
-          <div class="card-box">
-            <h3 id="course-form-title">Create New Course</h3>
-            <form id="course-form">
+          <div class="bg-white border border-slate-100 rounded-2xl p-6 lg:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+            <h3 id="course-form-title"
+              class="font-display text-lg font-bold text-slate-800 pb-4 border-b border-slate-100 mb-6">Create New
+              Course</h3>
+            <form id="course-form" class="space-y-4">
               <!-- Edit indicator -->
               <input type="hidden" id="course-edit-id">
 
-              <div class="form-group">
-                <label for="course-code">Course Code</label>
-                <input type="text" id="course-code" required placeholder="e.g. SEN 511" autocomplete="off" style="text-transform: uppercase;">
+              <div>
+                <label for="course-code"
+                  class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Course Code</label>
+                <input type="text" id="course-code" required placeholder="e.g. SEN 511" autocomplete="off"
+                  style="text-transform: uppercase;"
+                  class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200">
               </div>
 
-              <div class="form-group">
-                <label for="course-name">Course Name</label>
-                <input type="text" id="course-name" required placeholder="e.g. Software Testing & QA" autocomplete="off">
+              <div>
+                <label for="course-name"
+                  class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Course Name</label>
+                <input type="text" id="course-name" required placeholder="e.g. Software Testing & QA" autocomplete="off"
+                  class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200">
               </div>
 
-              <div class="form-group">
-                <label for="course-dept">Department</label>
-                <select id="course-dept" required>
+              <div>
+                <label for="course-dept"
+                  class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Department</label>
+                <select id="course-dept" required
+                  class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200">
                   <option value="" disabled selected>Select Department</option>
                 </select>
               </div>
 
-              <div class="form-group">
-                <label for="course-level">Level</label>
-                <select id="course-level" required>
+              <div>
+                <label for="course-level"
+                  class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Level</label>
+                <select id="course-level" required
+                  class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200">
                   <option value="" disabled selected>Select Level</option>
                   <option value="100">100 Level</option>
                   <option value="200">200 Level</option>
@@ -340,20 +821,24 @@
                 </select>
               </div>
 
-              <div class="form-group">
-                <label for="course-semester">Semester</label>
-                <select id="course-semester" required>
+              <div>
+                <label for="course-semester"
+                  class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Semester</label>
+                <select id="course-semester" required
+                  class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200">
                   <option value="" disabled selected>Select Semester</option>
                   <option value="First">First Semester</option>
                   <option value="Second">Second Semester</option>
                 </select>
               </div>
 
-              <div class="action-buttons-cell" style="margin-top: 24px;">
-                <button type="submit" id="course-submit-btn" class="btn btn-primary" style="flex: 1;">
+              <div class="flex gap-3 pt-3">
+                <button type="submit" id="course-submit-btn"
+                  class="flex-grow py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold shadow-md transition-all duration-200 cursor-pointer">
                   Save Course
                 </button>
-                <button type="button" id="course-cancel-btn" class="btn btn-secondary hidden">
+                <button type="button" id="course-cancel-btn"
+                  class="hidden px-5 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer">
                   Cancel
                 </button>
               </div>
@@ -361,25 +846,32 @@
           </div>
 
           <!-- Courses list table -->
-          <div class="card-box" style="grid-column: span 1;">
-            <h3>Course List</h3>
-            <div class="filter-group" style="margin-bottom: 16px;">
-              <select id="course-list-filter-dept">
+          <div class="bg-white border border-slate-100 rounded-2xl p-6 lg:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+            <h3 class="font-display text-lg font-bold text-slate-800 pb-4 border-b border-slate-100 mb-6">Course List
+            </h3>
+            <div class="mb-5">
+              <select id="course-list-filter-dept"
+                class="w-full sm:w-auto bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-slate-600 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all duration-200">
                 <option value="all">All Departments</option>
               </select>
             </div>
-            
-            <div style="max-height: 500px; overflow-y: auto;">
-              <table style="width: 100%;">
+
+            <div class="max-h-[500px] overflow-y-auto border border-slate-100 rounded-xl">
+              <table class="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr>
-                    <th>Code</th>
-                    <th>Name</th>
-                    <th>Dept & Info</th>
-                    <th style="text-align: right;">Actions</th>
+                  <tr class="border-b border-slate-100">
+                    <th class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-4 py-3">Code
+                    </th>
+                    <th class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-4 py-3">Name
+                    </th>
+                    <th class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-4 py-3">Dept
+                      & Info</th>
+                    <th
+                      class="bg-slate-50/50 text-slate-500 font-bold uppercase tracking-wider text-xs px-4 py-3 text-right">
+                      Actions</th>
                   </tr>
                 </thead>
-                <tbody id="courses-table-body">
+                <tbody id="courses-table-body" class="divide-y divide-slate-100 text-slate-700">
                   <!-- Dynamically populated courses list -->
                 </tbody>
               </table>
@@ -399,8 +891,10 @@
     <div class="modal-card">
       <div class="modal-header">
         <div class="modal-icon modal-icon-danger" id="confirm-modal-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+            class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
         <h3 id="confirm-modal-title">Are you sure?</h3>
@@ -420,24 +914,24 @@
   <script src="js/departments.js"></script>
   <script src="js/courses.js"></script>
   <script src="js/resources.js"></script>
-  
+
   <script>
     // Tab Navigation Logic
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
-        
+
         // Remove active class from all nav items
         document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
         // Hide all tab views
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        
+
         // Add active to current
         item.classList.add('active');
         // Show selected tab view
         const tabId = item.getAttribute('data-tab');
         document.getElementById(`tab-${tabId}`).classList.add('active');
-        
+
         // Load data specific to the tab
         onTabActivated(tabId);
       });
@@ -466,7 +960,7 @@
         window.location.href = "index.html";
         return;
       }
-      
+
       // Update display email
       document.getElementById('user-email-display').innerText = session.user.email;
       document.getElementById('user-avatar-initials').innerText = session.user.email.substring(0, 2).toUpperCase();
@@ -492,7 +986,7 @@
 
       modalTitle.innerText = title;
       modalBody.innerText = message;
-      
+
       if (isDanger) {
         icon.className = 'modal-icon modal-icon-danger';
         confirmBtn.className = 'btn btn-danger';
@@ -518,4 +1012,5 @@
     }
   </script>
 </body>
+
 </html>

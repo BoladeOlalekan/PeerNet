@@ -7,48 +7,73 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Stylesheet -->
+  
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom CSS for custom animations/toasts/loaders -->
   <link rel="stylesheet" href="css/styles.css">
+  
   <!-- Supabase Client JS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="login-body">
-  <div class="login-wrapper">
-    <div class="login-card">
-      <div class="login-header">
-        <div class="login-logo">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+  
+  <!-- Premium Background Decorative Blobs -->
+  <div class="absolute -top-32 -left-32 w-80 h-80 bg-emerald-100 rounded-full filter blur-3xl opacity-60"></div>
+  <div class="absolute -bottom-32 -right-32 w-80 h-80 bg-blue-100 rounded-full filter blur-3xl opacity-60"></div>
+
+  <div class="w-full max-w-[440px] relative z-10">
+    <div class="bg-white/85 backdrop-blur-md border border-slate-200/60 rounded-[2rem] p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-300">
+      
+      <div class="text-center mb-8">
+        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-emerald-100/60">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7">
             <path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
           </svg>
         </div>
-        <h1>PeerNet Admin</h1>
-        <p>Access the resource & department control panel</p>
+        <h1 class="font-display text-2xl font-bold text-slate-800 tracking-tight mb-2">PeerNet Admin</h1>
+        <p class="text-slate-500 text-sm">Access the resource & department control panel</p>
       </div>
 
-      <form id="login-form" class="login-form">
-        <div class="form-group">
-          <label for="email">Admin Email</label>
-          <div class="input-wrapper">
-            <input type="email" id="email" required placeholder="admin@futa.edu.ng" autocomplete="email">
+      <form id="login-form" class="space-y-5">
+        <div>
+          <label for="email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Admin Email</label>
+          <div class="relative">
+            <input type="email" id="email" required placeholder="admin@futa.edu.ng" autocomplete="email"
+              class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200">
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="password">Password</label>
-          <div class="input-wrapper">
-            <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
+        <div>
+          <label for="password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Password</label>
+          <div class="relative">
+            <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password"
+              class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-4 py-3 text-slate-800 text-sm placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-200">
           </div>
         </div>
 
-        <button type="submit" id="submit-btn" class="btn btn-primary btn-block">
+        <button type="submit" id="submit-btn" 
+          class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl text-sm font-semibold shadow-lg shadow-emerald-600/10 hover:shadow-xl hover:shadow-emerald-600/20 active:shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed">
           <span class="btn-text">Sign In</span>
           <div class="btn-loader hidden"></div>
         </button>
       </form>
 
-      <div class="login-footer">
-        <p>PeerNet Collaborative Learning Platform &copy; 2026</p>
+      <div class="text-center mt-8 pt-6 border-t border-slate-100">
+        <p class="text-[11px] text-slate-400 font-medium tracking-wide">PeerNet Collaborative Learning Platform &copy; 2026</p>
       </div>
     </div>
   </div>
