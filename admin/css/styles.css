@@ -19,6 +19,11 @@
   display: inline-block;
 }
 
+button .btn-loader {
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #ffffff;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }

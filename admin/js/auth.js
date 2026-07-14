@@ -59,6 +59,27 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Toggle password visibility
+  const togglePasswordBtn = document.getElementById("toggle-password");
+  const passwordInput = document.getElementById("password");
+  const eyeIcon = document.getElementById("eye-icon");
+  const eyeSlashIcon = document.getElementById("eye-slash-icon");
+
+  if (togglePasswordBtn && passwordInput) {
+    togglePasswordBtn.addEventListener("click", () => {
+      const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+      passwordInput.setAttribute("type", type);
+      
+      if (type === "password") {
+        eyeIcon.classList.remove("hidden");
+        eyeSlashIcon.classList.add("hidden");
+      } else {
+        eyeIcon.classList.add("hidden");
+        eyeSlashIcon.classList.remove("hidden");
+      }
+    });
+  }
+
   // Safe auto-redirect check
   async function checkSessionAndRedirect() {
     try {
