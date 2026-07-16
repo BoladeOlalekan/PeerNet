@@ -197,6 +197,20 @@ async function loadDepartmentsIntoDropdowns() {
       massUploadDept.value = currentValue;
     }
 
+    // Dropdown in Users filter
+    const usersFilterDept = document.getElementById("users-filter-dept");
+    if (usersFilterDept) {
+      const currentValue = usersFilterDept.value;
+      usersFilterDept.innerHTML = `<option value="all">All Departments</option>`;
+      departments.forEach(dept => {
+        const opt = document.createElement("option");
+        opt.value = dept.name;
+        opt.innerText = dept.name;
+        usersFilterDept.appendChild(opt);
+      });
+      usersFilterDept.value = currentValue;
+    }
+
   } catch (err) {
     console.error("Failed to populate department dropdowns:", err);
   }
