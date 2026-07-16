@@ -84,8 +84,9 @@ function renderUsersTable() {
   let html = "";
   filtered.forEach(user => {
     const initials = (user.full_name || user.email || "??").substring(0, 2).toUpperCase();
-    const avatarHtml = user.image_url 
-      ? `<img src="${user.image_url}" class="w-9 h-9 rounded-full object-cover border border-slate-100" onerror="this.outerHTML='<div class=\'w-9 h-9 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center\'>${initials}</div>'">`
+    const avatarUrl = user.avatar_url || user.image_url;
+    const avatarHtml = avatarUrl 
+      ? `<img src="${avatarUrl}" class="w-9 h-9 rounded-full object-cover border border-slate-100" onerror="this.outerHTML='<div class=\'w-9 h-9 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center\'>${initials}</div>'">`
       : `<div class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center">${initials}</div>`;
 
     const joinedDate = user.created_at ? new Date(user.created_at).toLocaleDateString(undefined, {
@@ -148,8 +149,9 @@ function viewUserDetails(uid) {
   if (!modal || !modalContent) return;
 
   const initials = (user.full_name || user.email || "??").substring(0, 2).toUpperCase();
-  const avatarHtml = user.image_url 
-    ? `<img src="${user.image_url}" class="w-20 h-20 rounded-2xl object-cover border border-slate-100 shadow-sm" onerror="this.outerHTML='<div class=\'w-20 h-20 rounded-2xl bg-emerald-50 text-emerald-700 font-bold text-xl flex items-center justify-center\'>${initials}</div>'">`
+  const avatarUrl = user.avatar_url || user.image_url;
+  const avatarHtml = avatarUrl 
+    ? `<img src="${avatarUrl}" class="w-20 h-20 rounded-2xl object-cover border border-slate-100 shadow-sm" onerror="this.outerHTML='<div class=\'w-20 h-20 rounded-2xl bg-emerald-50 text-emerald-700 font-bold text-xl flex items-center justify-center\'>${initials}</div>'">`
     : `<div class="w-20 h-20 rounded-2xl bg-emerald-50 text-emerald-700 font-bold text-xl flex items-center justify-center shadow-sm">${initials}</div>`;
 
   const createdDate = user.created_at ? new Date(user.created_at).toLocaleString() : '—';
