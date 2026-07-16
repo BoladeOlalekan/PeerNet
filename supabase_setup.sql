@@ -81,3 +81,13 @@ CREATE POLICY "Allow admin full access to resources"
     USING (
         auth.jwt() ->> 'email' IN (SELECT email FROM public.admins)
     );
+
+-- ==========================================
+-- 4. Seed Admin Placeholder User in public.users
+-- ==========================================
+-- This ensures that admin resource uploads (which reference uploader_firebase_uid = 'admin') 
+-- do not violate foreign key constraints on public.users.
+INSERT INTO public.users (firebase_uid, email, full_name, nickname, is_admin, department, level)
+VALUES ('admin', 'admin@peernet.com', 'System Administrator', 'admin', true, 'Software Engineering', 500)
+ON CONFLICT (firebase_uid) DO NOTHING;
+
