@@ -67,10 +67,13 @@ CREATE POLICY "Allow admin write access to courses"
         auth.jwt() ->> 'email' IN (SELECT email FROM public.admins)
     );
 
--- Resources Policies (Public read approved, users insert, admin manage all)
+DROP POLICY IF EXISTS "Allow public read access to approved resources" ON public.resources;
 CREATE POLICY "Allow public read access to approved resources" 
     ON public.resources FOR SELECT 
-    USING (approval_status = 'approved');
+    USING (
+        approval_status = 'approved' 
+        OR uploader_firebase_uid = (auth.jwt() ->> 'sub')
+    );
 
 CREATE POLICY "Allow users to upload pending resources" 
     ON public.resources FOR INSERT 
