@@ -5,5 +5,5 @@
   # The directory to deploy (served as the website root)
   publish = "admin"
 
-  # Build command: dynamically generates config.js with Netlify environment variables before deployment
-  command = "echo \"const CONFIG = { SUPABASE_URL: '$SUPABASE_URL', SUPABASE_ANON_KEY: '$SUPABASE_ANON_KEY' };\" > admin/js/config.js"
+  # Build command: dynamically generates config.json with Netlify environment variables before deployment
+  command = "echo \"{ \\\"SUPABASE_URL\\\": \\\"$SUPABASE_URL\\\", \\\"SUPABASE_ANON_KEY\\\": \\\"$SUPABASE_ANON_KEY\\\" }\" > admin/js/config.json"

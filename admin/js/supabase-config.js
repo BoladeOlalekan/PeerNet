@@ -30,15 +30,15 @@ function showConfigErrorOverlay(technicalDetail = "") {
 
       <h2 style="font-size: 24px; font-weight: 700; margin: 0 0 12px; color: #ffffff; letter-spacing: -0.025em;">Configuration Required</h2>
       <p style="font-size: 14px; color: #94a3b8; line-height: 1.6; margin: 0 0 28px;">
-        The admin panel configuration file (<code style="font-family: monospace; color: #f472b6;">admin/js/config.js</code>) is missing, incomplete, or failed to load. Please set up your local secrets to run the admin portal.
+        The admin panel configuration file (<code style="font-family: monospace; color: #f472b6;">admin/js/config.json</code>) is missing, incomplete, or failed to load. Please set up your local secrets to run the admin portal.
       </p>
 
       <div style="text-align: left; background: rgba(15, 23, 42, 0.4); border-radius: 14px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 24px; box-sizing: border-box;">
         <h4 style="font-size: 12px; text-transform: uppercase; color: #38bdf8; font-weight: 600; margin: 0 0 12px; letter-spacing: 0.05em;">Setup Steps:</h4>
         <ol style="margin: 0; padding-left: 20px; color: #cbd5e1; font-size: 13px; line-height: 1.8;">
-          <li style="margin-bottom: 8px;">Locate the file <code style="font-family: monospace; color: #38bdf8; background: rgba(56, 189, 248, 0.08); padding: 2px 6px; border-radius: 4px;">admin/js/config.example.js</code>.</li>
-          <li style="margin-bottom: 8px;">Duplicate and rename it to <code style="font-family: monospace; color: #38bdf8; background: rgba(56, 189, 248, 0.08); padding: 2px 6px; border-radius: 4px;">config.js</code> inside the same folder.</li>
-          <li style="margin-bottom: 8px;">Open <code style="font-family: monospace; color: #cbd5e1;">config.js</code> and enter your Supabase URL and Anon Key.</li>
+          <li style="margin-bottom: 8px;">Locate the file <code style="font-family: monospace; color: #38bdf8; background: rgba(56, 189, 248, 0.08); padding: 2px 6px; border-radius: 4px;">admin/js/config.example.json</code>.</li>
+          <li style="margin-bottom: 8px;">Duplicate and rename it to <code style="font-family: monospace; color: #38bdf8; background: rgba(56, 189, 248, 0.08); padding: 2px 6px; border-radius: 4px;">config.json</code> inside the same folder.</li>
+          <li style="margin-bottom: 8px;">Open <code style="font-family: monospace; color: #cbd5e1;">config.json</code> and enter your Supabase URL and Anon Key.</li>
           <li>Save the file and refresh this page.</li>
         </ol>
       </div>
@@ -64,12 +64,26 @@ function showConfigErrorOverlay(technicalDetail = "") {
   }
 }
 
+// Try to load CONFIG from config.json synchronously using XHR
+let CONFIG = undefined;
+try {
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", "js/config.json", false);
+  xhr.send();
+  if (xhr.status === 200) {
+    CONFIG = JSON.parse(xhr.responseText);
+    window.CONFIG = CONFIG;
+  }
+} catch (e) {
+  console.warn("Failed to load config.json:", e);
+}
+
 // Safely initialize Supabase Client and create proxy fallback
 let supabaseClient = null;
 let initError = "";
 
-if (typeof CONFIG === 'undefined' || !CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) {
-  initError = "Configuration object 'CONFIG' is not defined or is missing keys.";
+if (!CONFIG || !CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) {
+  initError = "Configuration object 'CONFIG' is not defined or is missing keys in js/config.json.";
 } else {
   try {
     supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
