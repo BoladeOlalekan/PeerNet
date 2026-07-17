@@ -72,7 +72,7 @@ CREATE POLICY "Allow public read access to approved resources"
     ON public.resources FOR SELECT 
     USING (
         approval_status = 'approved' 
-        OR uploader_firebase_uid = (auth.jwt() ->> 'sub')
+        OR uploader_firebase_uid = (SELECT firebase_uid FROM public.users WHERE email = auth.jwt() ->> 'email')
     );
 
 CREATE POLICY "Allow users to upload pending resources" 
