@@ -34,6 +34,9 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
   String? _selectedFileType;
   File? _selectedFile;
 
+  late final TextEditingController _youtubeUrlController;
+  late final TextEditingController _videoTitleController;
+
   bool _loadingData = true;
 
   int _parseLevel(String levelStr) {
@@ -44,7 +47,16 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
   @override
   void initState() {
     super.initState();
+    _youtubeUrlController = TextEditingController();
+    _videoTitleController = TextEditingController();
     _loadInitialData();
+  }
+
+  @override
+  void dispose() {
+    _youtubeUrlController.dispose();
+    _videoTitleController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadInitialData() async {
@@ -126,8 +138,15 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_selectedFile == null) {
+    final isVideo = _selectedFileType == 'Video';
+
+    if (!isVideo && _selectedFile == null) {
       _showSnack('Please select a file');
+      return;
+    }
+
+    if (isVideo && _youtubeUrlController.text.trim().isEmpty) {
+      _showSnack('Please enter a YouTube link');
       return;
     }
 
@@ -158,7 +177,9 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
             department: widget.currentUser.department,
             courseId: _selectedCourseId!,
             fileType: _selectedFileType!,
-            file: _selectedFile!,
+            file: isVideo ? null : _selectedFile,
+            youtubeUrl: isVideo ? _youtubeUrlController.text.trim() : null,
+            fileName: isVideo ? _videoTitleController.text.trim() : null,
             level: _parseLevel(widget.currentUser.level),
             semester: _selectedSemester!,
             courseCode: courseCode,
@@ -177,6 +198,8 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
           _selectedCourseId = null;
           _selectedFileType = null;
           _selectedSemester = null;
+          _youtubeUrlController.clear();
+          _videoTitleController.clear();
           _courses = [];
         });
       }
@@ -541,15 +564,64 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
                           value: _selectedFileType,
                           items: _fileTypes,
                           hint: 'Select File Type',
-                          onChanged: (v) =>
-                              setState(() => _selectedFileType = v),
+                          onChanged: (v) {
+                            setState(() {
+                              _selectedFileType = v;
+                              if (v == 'Video') {
+                                _selectedFile = null;
+                              } else {
+                                _youtubeUrlController.clear();
+                                _videoTitleController.clear();
+                              }
+                            });
+                          },
                           validator: (v) =>
                               v == null ? 'Please select a file type' : null,
                         ),
                         const SizedBox(height: 20),
 
-                        // File Picker
-                        _buildUploadZone(),
+                        // File Picker or Youtube inputs
+                        if (_selectedFileType == 'Video') ...[
+                          TextFormField(
+                            controller: _videoTitleController,
+                            style: AppStyles.inputTextStyle,
+                            decoration: AppStyles.inputDecoration(
+                              hint: 'Video Title (e.g. Intro to Algebra)',
+                            ).copyWith(filled: true, fillColor: Colors.white),
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Please enter a video title'
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _youtubeUrlController,
+                            style: AppStyles.inputTextStyle,
+                            decoration: AppStyles.inputDecoration(
+                              hint: 'YouTube Link (e.g. https://youtube.com/...)',
+                            ).copyWith(
+                              filled: true,
+                              fillColor: Colors.white,
+                              suffixIcon: const Icon(
+                                FluentSystemIcons.ic_fluent_video_clip_regular,
+                                color: AppStyles.iconMuted,
+                                size: 20,
+                              ),
+                            ),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Please enter a YouTube link';
+                              }
+                              final lowercase = v.toLowerCase();
+                              if (!lowercase.contains('youtube.com') &&
+                                  !lowercase.contains('youtu.be')) {
+                                return 'Please enter a valid YouTube link';
+                              }
+                              return null;
+                            },
+                          ),
+                        ] else ...[
+                          _buildUploadZone(),
+                        ],
                         const SizedBox(height: 28),
 
                         // Submit button

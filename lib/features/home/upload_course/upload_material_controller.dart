@@ -51,7 +51,9 @@ class UploadMaterialController extends StateNotifier<AsyncValue<void>> {
     required String courseId,
     required String courseCode,
     required String fileType,
-    required File file,
+    File? file,
+    String? youtubeUrl,
+    String? fileName,
     required int level,
     required String semester,
   }) async {
@@ -64,6 +66,8 @@ class UploadMaterialController extends StateNotifier<AsyncValue<void>> {
         courseCode: courseCode,
         fileType: fileType,
         file: file,
+        youtubeUrl: youtubeUrl,
+        customFileName: fileName,
         level: level,
         semester: semester, 
       );

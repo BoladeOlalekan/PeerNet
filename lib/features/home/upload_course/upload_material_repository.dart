@@ -56,19 +56,12 @@ class UploadMaterialRepository {
     required String courseCode,
     required String courseId,
     required String fileType,
-    required File file,
+    File? file,
+    String? youtubeUrl,
+    String? customFileName,
     required int level,
     required String semester,
   }) async {
-    final fileName = p.basename(file.path);
-
-    // Preserve your real folder casing and names
-    final cleanDepartment = department.trim();
-    final cleanLevel = level.toString();
-    final cleanSemester = semester.trim();
-    final cleanCourseCode = courseCode.trim().toUpperCase();
-    //final cleanFileType = fileType.trim().toLowerCase().replaceAll(' ', '_');
-
     // 🔹 Map the UI fileType to Supabase database enum
     String mapFileTypeForDB(String type) {
       switch (type.toLowerCase()) {
@@ -83,13 +76,49 @@ class UploadMaterialRepository {
       }
     }
 
+    final dbFileType = mapFileTypeForDB(fileType);
+
+    if (dbFileType == 'video') {
+      if (youtubeUrl == null || youtubeUrl.trim().isEmpty) {
+        throw Exception('YouTube URL is required for video upload.');
+      }
+      final name = customFileName?.trim().isNotEmpty == true
+          ? customFileName!.trim()
+          : 'Untitled Video';
+
+      await _supabase.from('resources').insert({
+        'course_id': courseId,
+        'uploader_firebase_uid': uploaderId,
+        'storage_path': null,
+        'youtube_url': youtubeUrl.trim(),
+        'mime_type': 'video/youtube',
+        'size_bytes': 0,
+        'file_type': 'video',
+        'approval_status': 'pending',
+        'file_name': name,
+        'created_at': DateTime.now().toIso8601String(),
+      });
+      print('✅ Video metadata inserted successfully.');
+      return;
+    }
+
+    if (file == null) {
+      throw Exception('File is required for $fileType upload.');
+    }
+
+    final fileName = p.basename(file.path);
+
+    // Preserve your real folder casing and names
+    final cleanDepartment = department.trim();
+    final cleanLevel = level.toString();
+    final cleanSemester = semester.trim();
+    final cleanCourseCode = courseCode.trim().toUpperCase();
+
     // Map UI fileType to storage folder
     String mapFileTypeForStorage(String type) {
       switch (type.toLowerCase()) {
         case 'note':
           return 'notes';
-        case 'video':
-          return 'videos';
         case 'past question':
           return 'past_questions';
         default:
@@ -97,7 +126,6 @@ class UploadMaterialRepository {
       }
     }
 
-    final dbFileType = mapFileTypeForDB(fileType);
     final storageFileType = mapFileTypeForStorage(fileType);
     final timestampedFileName = '${DateTime.now().millisecondsSinceEpoch}_$fileName';
 
