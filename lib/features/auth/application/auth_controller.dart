@@ -59,6 +59,9 @@ class AuthController extends StateNotifier<AuthState> {
       if (firebaseUser == null) {
         state = const AuthState(user: AsyncValue.data(null), flow: AuthFlow.idle);
       } else {
+        // Sync Firebase session with Supabase
+        await _authRepository.syncFirebaseToSupabase();
+
         // show loading while fetching fresh Firestore user
         state = AuthState(
           user: const AsyncValue.loading(),
