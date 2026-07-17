@@ -83,8 +83,8 @@ if (initError || !supabaseClient) {
   console.error("Configuration Error:", initError);
   showConfigErrorOverlay(initError);
   
-  // Set up mock client proxy to prevent ReferenceError crashes in other dashboard scripts
-  window.supabaseClient = {
+  // Set up mock client proxy to prevent ReferenceError/Null pointer crashes in other dashboard scripts
+  const mockClient = {
     auth: {
       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       getUser: () => Promise.resolve({ data: { user: null }, error: null }),
@@ -111,6 +111,9 @@ if (initError || !supabaseClient) {
       })
     }
   };
+
+  supabaseClient = mockClient;
+  window.supabaseClient = mockClient;
 }
 
 // Helper function to show notifications
