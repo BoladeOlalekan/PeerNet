@@ -94,3 +94,17 @@ INSERT INTO public.users (firebase_uid, email, full_name, nickname, is_admin, de
 VALUES ('admin', 'admin@peernet.com', 'System Administrator', 'admin', true, 'Software Engineering', 500)
 ON CONFLICT (firebase_uid) DO NOTHING;
 
+-- ==========================================
+-- 5. Create RPC function to fetch user resources bypassing RLS
+-- ==========================================
+CREATE OR REPLACE FUNCTION public.get_user_resources(user_uid TEXT)
+RETURNS SETOF public.resources
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+    SELECT * 
+    FROM public.resources 
+    WHERE uploader_firebase_uid = user_uid
+    ORDER BY created_at DESC;
+$$;
+

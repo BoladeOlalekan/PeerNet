@@ -20,20 +20,16 @@ final allCoursesMapProvider = FutureProvider<Map<String, String>>((ref) async {
 });
 
 final userUploadsProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
-  // Watch auth state to rebuild stream when Supabase session is synced/established
-  ref.watch(authControllerProvider);
-  
   final userId = FirebaseAuth.instance.currentUser?.uid;
   final supabase = Supabase.instance.client;
 
   if (userId == null) return const Stream.empty();
 
-  return supabase
-      .from('resources')
-      .stream(primaryKey: ['id'])
-      .eq('uploader_firebase_uid', userId)
-      .order('created_at', ascending: false)
-      .map((rows) => rows);
+  return Stream.fromFuture(
+    supabase
+        .rpc('get_user_resources', params: {'user_uid': userId})
+        .then((data) => List<Map<String, dynamic>>.from(data as List)),
+  );
 });
 
 class UserUploadsScreen extends ConsumerStatefulWidget {
