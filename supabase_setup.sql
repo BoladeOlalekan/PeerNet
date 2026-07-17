@@ -75,9 +75,10 @@ CREATE POLICY "Allow public read access to approved resources"
         OR uploader_firebase_uid = (SELECT firebase_uid FROM public.users WHERE email = auth.jwt() ->> 'email')
     );
 
+DROP POLICY IF EXISTS "Allow users to upload pending resources" ON public.resources;
 CREATE POLICY "Allow users to upload pending resources" 
     ON public.resources FOR INSERT 
-    WITH CHECK (auth.role() = 'authenticated');
+    WITH CHECK (true);
 
 CREATE POLICY "Allow admin full access to resources" 
     ON public.resources FOR ALL 

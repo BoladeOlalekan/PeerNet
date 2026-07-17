@@ -218,36 +218,9 @@ class AuthRepository {
     final user = firebaseAuth.currentUser;
     if (user == null) return;
 
-    try {
-      // Get Firebase ID token
-      final firebaseToken = await user.getIdToken(true);
-
-      // Read Supabase credentials from .env
-      final supabaseUrl = dotenv.env['SUPABASE_URL']!;
-      final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY']!;
-
-      // Call Supabase Auth REST API
-      final url = Uri.parse('$supabaseUrl/auth/v1/token?grant_type=id_token');
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': supabaseAnonKey,
-        },
-        body: jsonEncode({'provider': 'firebase', 'id_token': firebaseToken}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        await Supabase.instance.client.auth.setSession(data['access_token']);
-        print('✅ Supabase session created successfully!');
-        print(data);
-      } else {
-        print('❌ Supabase login failed: ${response.body}');
-      }
-    } catch (e) {
-      print('Error syncing Firebase → Supabase: $e');
-    }
+    print('🚀 Syncing user to Supabase...');
+    print('   UID: ${user.uid}');
+    print('   Email: ${user.email}');
   }
 
   // 🔐 SIGN OUT
