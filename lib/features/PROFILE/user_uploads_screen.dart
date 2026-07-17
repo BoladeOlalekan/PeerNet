@@ -5,7 +5,6 @@ import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:peer_net/features/auth/application/auth_providers.dart';
 
 final allCoursesMapProvider = FutureProvider<Map<String, String>>((ref) async {
   final supabase = Supabase.instance.client;
