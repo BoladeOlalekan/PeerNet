@@ -474,121 +474,145 @@ class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen>
                   return true;
                 }).toList();
 
+                Widget listWidget;
                 if (filtered.isEmpty) {
-                  return _buildEmptyState(category);
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final upload = filtered[index];
-                    final status = upload['approval_status'] ?? 'pending';
-                    final fileType = upload['file_type'] as String? ?? 'note';
-                    final fileName =
-                        upload['file_name'] as String? ?? 'Untitled';
-                    final sizeText = _formatSize(upload['size_bytes'] as int?);
-                    final timeText = _formatDate(
-                      upload['created_at'] as String?,
-                    );
-
-                    // Look up course code using map
-                    final courseIdStr = upload['course_id']?.toString();
-                    final courseCode =
-                        coursesMap[courseIdStr] ?? 'Unknown Course';
-
-                    final icon = _getIconForFile(fileType);
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppStyles.inputBorder),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.015),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
+                  listWidget = ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.6,
+                        child: _buildEmptyState(category),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
+                    ],
+                  );
+                } else {
+                  listWidget = ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
+                    ),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final upload = filtered[index];
+                      final status = upload['approval_status'] ?? 'pending';
+                      final fileType = upload['file_type'] as String? ?? 'note';
+                      final fileName =
+                          upload['file_name'] as String? ?? 'Untitled';
+                      final sizeText = _formatSize(upload['size_bytes'] as int?);
+                      final timeText = _formatDate(
+                        upload['created_at'] as String?,
+                      );
+
+                      // Look up course code using map
+                      final courseIdStr = upload['course_id']?.toString();
+                      final courseCode =
+                          coursesMap[courseIdStr] ?? 'Unknown Course';
+
+                      final icon = _getIconForFile(fileType);
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppStyles.inputBorder),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.015),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
                             ),
-                            leading: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: AppStyles.accentColor.withValues(
-                                  alpha: 0.1,
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              leading: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: AppStyles.accentColor.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                borderRadius: BorderRadius.circular(12),
+                                child: Icon(
+                                  icon,
+                                  color: AppStyles.accentColor,
+                                  size: 20,
+                                ),
                               ),
-                              child: Icon(
-                                icon,
-                                color: AppStyles.accentColor,
-                                size: 20,
-                              ),
-                            ),
-                            title: Text(
-                              fileName,
-                              style: const TextStyle(
-                                color: AppStyles.headingColor,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                "$courseCode • $sizeText • $timeText",
+                              title: Text(
+                                fileName,
                                 style: const TextStyle(
-                                  color: AppStyles.mutedText,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w400,
+                                  color: AppStyles.headingColor,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  "$courseCode • $sizeText • $timeText",
+                                  style: const TextStyle(
+                                    color: AppStyles.mutedText,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                 ),
                               ),
-                            ),
-                            trailing: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _statusBgColor(status),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: _statusColor(
-                                    status,
-                                  ).withValues(alpha: 0.3),
-                                  width: 1,
+                              trailing: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
                                 ),
-                              ),
-                              child: Text(
-                                status.toUpperCase(),
-                                style: TextStyle(
-                                  color: _statusColor(status),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
-                                  letterSpacing: 0.5,
+                                decoration: BoxDecoration(
+                                  color: _statusBgColor(status),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: _statusColor(
+                                      status,
+                                    ).withValues(alpha: 0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  status.toUpperCase(),
+                                  style: TextStyle(
+                                    color: _statusColor(status),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                    letterSpacing: 0.5,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    );
+                      );
+                    },
+                  );
+                }
+
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(userUploadsProvider);
+                    ref.invalidate(allCoursesMapProvider);
+                    await Future.wait([
+                      ref.read(userUploadsProvider.future).catchError((_) => []),
+                      ref.read(allCoursesMapProvider.future).catchError((_) => {}),
+                    ]);
                   },
+                  color: AppStyles.primaryColor,
+                  child: listWidget,
                 );
               }).toList(),
             ),

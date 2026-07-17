@@ -255,17 +255,31 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
         }
 
         if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(() {});
+            },
+            color: AppStyles.primaryColor,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               children: [
-                Icon(Icons.error_outline, size: 48, color: Colors.red.shade300),
-                const SizedBox(height: 16),
-                Text(
-                  "Error loading resources",
-                  style: TextStyle(
-                    color: Colors.red.shade400,
-                    fontWeight: FontWeight.w500,
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.4,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline, size: 48, color: Colors.red.shade300),
+                        const SizedBox(height: 16),
+                        Text(
+                          "Error loading resources",
+                          style: TextStyle(
+                            color: Colors.red.shade400,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -279,21 +293,35 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
             .toList();
 
         if (filtered.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(() {});
+            },
+            color: AppStyles.primaryColor,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               children: [
-                const Icon(
-                  FluentSystemIcons.ic_fluent_folder_open_regular,
-                  size: 64,
-                  color: AppStyles.inputBorder,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  "No ${tabType.replaceAll('_', ' ')}s available yet.",
-                  style: const TextStyle(
-                    color: AppStyles.mutedText,
-                    fontSize: 16,
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.4,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          FluentSystemIcons.ic_fluent_folder_open_regular,
+                          size: 64,
+                          color: AppStyles.inputBorder,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "No ${tabType.replaceAll('_', ' ')}s available yet.",
+                          style: const TextStyle(
+                            color: AppStyles.mutedText,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -301,26 +329,34 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
           );
         }
 
-        return GridView.builder(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.78,
-          ),
-          itemCount: filtered.length,
-          itemBuilder: (context, idx) {
-            final resource = filtered[idx];
-            return ResourceCard(
-              fileName:
-                  resource['file_name'] ?? resource['fileName'] ?? 'Untitled',
-              fileType: resource['file_type'] ?? 'note',
-              downloadUrl: resource['download_url'] ?? '',
-              youtubeUrl: resource['youtube_url'] ?? '',
-            );
+        return RefreshIndicator(
+          onRefresh: () async {
+            setState(() {});
           },
+          color: AppStyles.primaryColor,
+          child: GridView.builder(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 0.78,
+            ),
+            itemCount: filtered.length,
+            itemBuilder: (context, idx) {
+              final resource = filtered[idx];
+              return ResourceCard(
+                fileName:
+                    resource['file_name'] ?? resource['fileName'] ?? 'Untitled',
+                fileType: resource['file_type'] ?? 'note',
+                downloadUrl: resource['download_url'] ?? '',
+                youtubeUrl: resource['youtube_url'] ?? '',
+              );
+            },
+          ),
         );
       },
     );

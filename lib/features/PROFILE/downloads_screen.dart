@@ -523,99 +523,116 @@ class _DownloadsScreenState extends State<DownloadsScreen>
                   return matchType && matchQuery;
                 }).toList();
 
+                Widget listWidget;
                 if (filtered.isEmpty) {
-                  return _buildEmptyState(category);
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, i) {
-                    final file = filtered[i];
-                    final icon = _getIconForFile(file.fileType);
-                    final sizeText = _formatSize(file.size);
-                    final timeText = _formatDate(file.downloadedAt);
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppStyles.inputBorder),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.015),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
+                  listWidget = ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.6,
+                        child: _buildEmptyState(category),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
+                    ],
+                  );
+                } else {
+                  listWidget = ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
+                    ),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, i) {
+                      final file = filtered[i];
+                      final icon = _getIconForFile(file.fileType);
+                      final sizeText = _formatSize(file.size);
+                      final timeText = _formatDate(file.downloadedAt);
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppStyles.inputBorder),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.015),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
                             ),
-                            leading: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: AppStyles.accentColor.withValues(
-                                  alpha: 0.1,
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              leading: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: AppStyles.accentColor.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                icon,
-                                color: AppStyles.accentColor,
-                                size: 20,
-                              ),
-                            ),
-                            title: Text(
-                              file.fileName,
-                              style: TextStyle(
-                                color: AppStyles.headingColor,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                "$sizeText • $timeText",
-                                style: const TextStyle(
-                                  color: AppStyles.mutedText,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w400,
+                                child: Icon(
+                                  icon,
+                                  color: AppStyles.accentColor,
+                                  size: 20,
                                 ),
                               ),
-                            ),
-                            trailing: Material(
-                              color: Colors.transparent,
-                              shape: const CircleBorder(),
-                              clipBehavior: Clip.antiAlias,
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.more_horiz_rounded,
-                                  color: AppStyles.iconMuted,
+                              title: Text(
+                                file.fileName,
+                                style: TextStyle(
+                                  color: AppStyles.headingColor,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
                                 ),
-                                onPressed: () => _showFileOptions(file),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  "$sizeText • $timeText",
+                                  style: const TextStyle(
+                                    color: AppStyles.mutedText,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                              trailing: Material(
+                                color: Colors.transparent,
+                                shape: const CircleBorder(),
+                                clipBehavior: Clip.antiAlias,
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.more_horiz_rounded,
+                                    color: AppStyles.iconMuted,
+                                  ),
+                                  onPressed: () => _showFileOptions(file),
+                                ),
+                              ),
+                              onTap: () async {
+                                await OpenFilex.open(file.localPath);
+                              },
                             ),
-                            onTap: () async {
-                              await OpenFilex.open(file.localPath);
-                            },
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  );
+                }
+
+                return RefreshIndicator(
+                  onRefresh: _loadDownloads,
+                  color: AppStyles.primaryColor,
+                  child: listWidget,
                 );
               }).toList(),
             ),
