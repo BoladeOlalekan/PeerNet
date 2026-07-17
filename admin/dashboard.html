@@ -1427,9 +1427,16 @@
       });
 
       // Sign Out Button
-      document.getElementById('logout-btn').addEventListener('click', async () => {
-        await supabaseClient.auth.signOut();
-        window.location.href = "index.html";
+      document.getElementById('logout-btn').addEventListener('click', () => {
+        showConfirmModal({
+          title: 'Sign Out',
+          message: 'Are you sure you want to sign out of the PeerNet Admin Portal?',
+          isDanger: true,
+          onConfirm: async () => {
+            await supabaseClient.auth.signOut();
+            window.location.href = "index.html";
+          }
+        });
       });
 
       // Initial tab load
