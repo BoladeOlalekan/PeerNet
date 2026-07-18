@@ -61,11 +61,11 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     return '${size.toStringAsFixed(1)} ${suffixes[i]}';
   }
 
-  Future<bool> _requestStoragePermission() async {
+  Future<FileAccessType> _requestStoragePermission() async {
     PermissionStatus status = await Permission.storage.status;
     
     if (status.isGranted) {
-      return true;
+      return FileAccessType.all;
     }
     
     if (status.isPermanentlyDenied) {
@@ -184,12 +184,12 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           },
         );
       }
-      return false;
+      return FileAccessType.denied;
     }
 
     PermissionStatus result = await Permission.storage.request();
     if (result.isGranted) {
-      return true;
+      return FileAccessType.all;
     }
 
     if (Platform.isAndroid) {
@@ -267,7 +267,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                       ),
                       onPressed: () => Navigator.pop(context, FileAccessType.limited),
                       child: const Text(
-                        'Select files (Allow limited access)',
+                        'Allow limited access',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
@@ -287,7 +287,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                       ),
                       onPressed: () => Navigator.pop(context, FileAccessType.all),
                       child: const Text(
-                        'Allow all access',
+                        'Allow all',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,

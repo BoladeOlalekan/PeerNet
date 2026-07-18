@@ -313,7 +313,7 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
                       ),
                       onPressed: () => Navigator.pop(context, FileAccessType.limited),
                       child: const Text(
-                        'Select files (Allow limited access)',
+                        'Allow limited access',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
@@ -333,7 +333,7 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
                       ),
                       onPressed: () => Navigator.pop(context, FileAccessType.all),
                       child: const Text(
-                        'Allow all access',
+                        'Allow all',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
