@@ -180,6 +180,7 @@ async function fetchAllResources() {
   const statusFilter = document.getElementById("resource-filter-status")?.value || "all";
   const typeFilter = document.getElementById("resource-filter-type")?.value || "all";
   const deptFilter = document.getElementById("resource-filter-dept")?.value || "all";
+  const levelFilter = document.getElementById("resource-filter-level")?.value || "all";
 
   tableBody.innerHTML = `
     <tr>
@@ -205,7 +206,8 @@ async function fetchAllResources() {
         course:course_id (
           course_code,
           course_name,
-          department
+          department,
+          level
         )
       `);
 
@@ -226,6 +228,11 @@ async function fetchAllResources() {
 
     if (deptFilter !== "all") {
       filteredResources = filteredResources.filter(res => res.course && res.course.department === deptFilter);
+    }
+
+    if (levelFilter !== "all") {
+      const targetLevel = parseInt(levelFilter, 10);
+      filteredResources = filteredResources.filter(res => res.course && res.course.level === targetLevel);
     }
 
     if (searchQuery) {
@@ -581,6 +588,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const filterStatus = document.getElementById("resource-filter-status");
   const filterType = document.getElementById("resource-filter-type");
   const filterDept = document.getElementById("resource-filter-dept");
+  const filterLevel = document.getElementById("resource-filter-level");
   const refreshBtn = document.getElementById("resource-refresh-btn");
   const pendingRefreshBtn = document.getElementById("pending-refresh-btn");
 
@@ -588,6 +596,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (filterStatus) filterStatus.addEventListener("change", fetchAllResources);
   if (filterType) filterType.addEventListener("change", fetchAllResources);
   if (filterDept) filterDept.addEventListener("change", fetchAllResources);
+  if (filterLevel) filterLevel.addEventListener("change", fetchAllResources);
   if (refreshBtn) refreshBtn.addEventListener("click", fetchAllResources);
   if (pendingRefreshBtn) pendingRefreshBtn.addEventListener("click", fetchPendingResources);
 });
