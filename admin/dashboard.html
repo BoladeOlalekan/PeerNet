@@ -1406,6 +1406,14 @@
         return;
       }
 
+      // Listen for real-time auth changes (expiration, sign-out in other tabs, etc.)
+      supabaseClient.auth.onAuthStateChange((event, currentSession) => {
+        const isLocalBypass = !currentSession && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+        if (!currentSession && !isLocalBypass) {
+          window.location.href = "index.html";
+        }
+      });
+
       // Update display email
       document.getElementById('user-email-display').innerText = session.user.email;
       const initials = session.user.email.substring(0, 2).toUpperCase();

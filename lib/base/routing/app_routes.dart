@@ -28,21 +28,46 @@ import 'package:fluentui_icons/fluentui_icons.dart';
 CustomTransitionPage<dynamic> buildSlideTransitionPage({
   required GoRouterState state,
   required Widget child,
-  Offset beginOffset = const Offset(0.1, 0), // default: slide from right
+  Offset beginOffset = const Offset(0.08, 0), // default: slide from right
 }) {
   return CustomTransitionPage(
     key: state.pageKey,
     child: child,
-    transitionDuration: const Duration(milliseconds: 300),
+    transitionDuration: const Duration(milliseconds: 350),
+    reverseTransitionDuration: const Duration(milliseconds: 250),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curve = CurvedAnimation(
+        parent: animation,
+        curve: Curves.fastEaseInToSlowEaseOut,
+        reverseCurve: Curves.fastOutSlowIn,
+      );
+
+      final slide = Tween<Offset>(
+        begin: beginOffset,
+        end: Offset.zero,
+      ).animate(curve);
+
+      final scale = Tween<double>(
+        begin: 0.96, // subtle zoom scaling for depth
+        end: 1.0,
+      ).animate(curve);
+
+      final opacity = Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(CurvedAnimation(
+        parent: animation,
+        curve: const Interval(0.0, 0.65, curve: Curves.easeOut),
+      ));
+
       return FadeTransition(
-        opacity: animation,
-        child: SlideTransition(
-          position: Tween<Offset>(
-            begin: beginOffset,
-            end: Offset.zero,
-          ).animate(animation),
-          child: child,
+        opacity: opacity,
+        child: ScaleTransition(
+          scale: scale,
+          child: SlideTransition(
+            position: slide,
+            child: child,
+          ),
         ),
       );
     },
@@ -239,7 +264,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: RouteNames.home,
                 pageBuilder: (context, state) => buildSlideTransitionPage(
                   state: state,
-                  beginOffset: const Offset(-0.1, 0), // slide from left
+                  beginOffset: Offset.zero, // instant fade-scale tab crossfade
                   child: const HomeScreen(),
                 ),
               ),
@@ -253,6 +278,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: RouteNames.connect,
                 pageBuilder: (context, state) => buildSlideTransitionPage(
                   state: state,
+                  beginOffset: Offset.zero,
                   child: const ConnectScreen(),
                 ),
               ),
@@ -266,6 +292,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: RouteNames.courses,
                 pageBuilder: (context, state) => buildSlideTransitionPage(
                   state: state,
+                  beginOffset: Offset.zero,
                   child: const CoursesScreen(
                     department: 'Software Engineering',
                     level: 500,
@@ -282,6 +309,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: RouteNames.ai,
                 pageBuilder: (context, state) => buildSlideTransitionPage(
                   state: state,
+                  beginOffset: Offset.zero,
                   child: const AiScreen(),
                 ),
               ),
@@ -295,6 +323,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: RouteNames.me,
                 pageBuilder: (context, state) => buildSlideTransitionPage(
                   state: state,
+                  beginOffset: Offset.zero,
                   child: const ProfileScreen(),
                 ),
               ),
