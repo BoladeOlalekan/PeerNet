@@ -10,6 +10,7 @@ import 'package:peer_net/features/auth/domain/user_entity.dart';
 import 'package:peer_net/features/home/upload_course/upload_material_controller.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:peer_net/main.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class UploadMaterialScreen extends ConsumerStatefulWidget {
   final UserEntity currentUser;
@@ -104,7 +105,83 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
     });
   }
 
+  Future<bool> _requestStoragePermission() async {
+    PermissionStatus status = await Permission.storage.status;
+    
+    if (status.isGranted) {
+      return true;
+    }
+    
+    if (status.isPermanentlyDenied) {
+      if (mounted) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Storage Permission Required'),
+            content: const Text(
+              'Storage access is permanently denied. Please enable it in the app settings to select files.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  openAppSettings();
+                },
+                child: const Text('Settings'),
+              ),
+            ],
+          ),
+        );
+      }
+      return false;
+    }
+
+    PermissionStatus result = await Permission.storage.request();
+    if (result.isGranted) {
+      return true;
+    }
+
+    if (Platform.isAndroid) {
+      if (mounted) {
+        final bool? consent = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text('Access Files & Documents'),
+            content: const Text(
+              'PeerNet requests your permission to launch the device file manager so you can select a document. Do you want to proceed?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E3A8A),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Proceed', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+        return consent ?? false;
+      }
+    }
+    
+    return false;
+  }
+
   Future<void> _pickFile() async {
+    final hasPermission = await _requestStoragePermission();
+    if (!hasPermission) return;
+
     try {
       final file = await ref
           .read(uploadMaterialControllerProvider.notifier)
