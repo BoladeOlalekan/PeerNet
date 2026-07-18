@@ -12,6 +12,8 @@ import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:peer_net/main.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+enum FileAccessType { all, limited, denied }
+
 class UploadMaterialScreen extends ConsumerStatefulWidget {
   final UserEntity currentUser;
 
@@ -105,11 +107,11 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
     });
   }
 
-  Future<bool> _requestStoragePermission() async {
+  Future<FileAccessType> _requestStoragePermission() async {
     PermissionStatus status = await Permission.storage.status;
     
     if (status.isGranted) {
-      return true;
+      return FileAccessType.all;
     }
     
     if (status.isPermanentlyDenied) {
@@ -228,17 +230,17 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
           },
         );
       }
-      return false;
+      return FileAccessType.denied;
     }
 
     PermissionStatus result = await Permission.storage.request();
     if (result.isGranted) {
-      return true;
+      return FileAccessType.all;
     }
 
     if (Platform.isAndroid) {
       if (mounted) {
-        final bool? consent = await showModalBottomSheet<bool>(
+        final FileAccessType? consent = await showModalBottomSheet<FileAccessType>(
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.white,
@@ -272,7 +274,7 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
-                          Icons.folder_open_rounded,
+                          Icons.perm_media_rounded,
                           size: 36,
                           color: Color(0xFF2563EB),
                         ),
@@ -280,7 +282,7 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
                     ),
                     const SizedBox(height: 20),
                     const Text(
-                      'Access Files & Documents',
+                      'Allow PeerNet to access files?',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 20,
@@ -289,59 +291,73 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(
-                      'PeerNet needs permission to access your device file manager. This allows you to choose and upload PDFs or notes securely.',
+                    const Text(
+                      'To upload media, allow PeerNet access to your device storage files.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey.shade600,
+                        color: Color(0xFF64748B),
                         height: 1.5,
                       ),
                     ),
                     const SizedBox(height: 28),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: BorderSide(color: Colors.grey.shade300),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            onPressed: () => Navigator.pop(context, false),
-                            child: Text(
-                              'Deny',
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: const Color(0xFFEFF6FF),
+                        foregroundColor: const Color(0xFF1E3A8A),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              backgroundColor: const Color(0xFF1E3A8A),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 0,
-                            ),
-                            onPressed: () => Navigator.pop(context, true),
-                            child: const Text(
-                              'Allow Access',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
+                        elevation: 0,
+                      ),
+                      onPressed: () => Navigator.pop(context, FileAccessType.limited),
+                      child: const Text(
+                        'Select files (Allow limited access)',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
                         ),
-                      ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: const Color(0xFF1E3A8A),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: () => Navigator.pop(context, FileAccessType.all),
+                      child: const Text(
+                        'Allow all access',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: BorderSide(color: Colors.grey.shade200),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(context, FileAccessType.denied),
+                      child: Text(
+                        "Don't allow",
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -349,16 +365,20 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
             );
           },
         );
-        return consent ?? false;
+        return consent ?? FileAccessType.denied;
       }
     }
     
-    return false;
+    return FileAccessType.denied;
   }
 
   Future<void> _pickFile() async {
-    final hasPermission = await _requestStoragePermission();
-    if (!hasPermission) return;
+    final access = await _requestStoragePermission();
+    if (access == FileAccessType.denied) return;
+
+    if (access == FileAccessType.limited && mounted) {
+      _showSnack('Limited access: only selected documents will be shared.');
+    }
 
     try {
       final file = await ref
