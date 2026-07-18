@@ -59,7 +59,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           .from('messages')
           .select()
           .eq('room_id', _roomId)
-          .order('created_at', descending: true);
+          .order('created_at', ascending: true);
 
       final List data = response as List;
       setState(() {

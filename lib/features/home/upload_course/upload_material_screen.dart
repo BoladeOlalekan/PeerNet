@@ -11,6 +11,7 @@ import 'package:peer_net/features/home/upload_course/upload_material_controller.
 import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:peer_net/main.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum FileAccessType { all, limited, denied }
 
@@ -108,6 +109,18 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
   }
 
   Future<FileAccessType> _requestStoragePermission() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedConsent = prefs.getString('storage_permission_consent');
+      if (cachedConsent == 'all') {
+        return FileAccessType.all;
+      } else if (cachedConsent == 'limited') {
+        return FileAccessType.limited;
+      }
+    } catch (e) {
+      debugPrint('Error reading storage consent cache: $e');
+    }
+
     PermissionStatus status = await Permission.storage.status;
     
     if (status.isGranted) {
@@ -235,6 +248,12 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
 
     PermissionStatus result = await Permission.storage.request();
     if (result.isGranted) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('storage_permission_consent', 'all');
+      } catch (e) {
+        debugPrint('Error caching storage consent: $e');
+      }
       return FileAccessType.all;
     }
 
@@ -365,6 +384,14 @@ class _UploadMaterialScreenState extends ConsumerState<UploadMaterialScreen> {
             );
           },
         );
+        if (consent != null && consent != FileAccessType.denied) {
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('storage_permission_consent', consent.name);
+          } catch (e) {
+            debugPrint('Error caching storage consent: $e');
+          }
+        }
         return consent ?? FileAccessType.denied;
       }
     }

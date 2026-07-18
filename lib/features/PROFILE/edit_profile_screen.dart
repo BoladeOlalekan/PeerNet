@@ -10,6 +10,7 @@ import 'package:peer_net/base/res/styles/app_styles.dart';
 import 'package:peer_net/features/auth/application/auth_providers.dart';
 import 'package:peer_net/features/auth/data/auth_repository.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum FileAccessType { all, limited, denied }
 
@@ -82,6 +83,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<FileAccessType> _requestStoragePermission() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedConsent = prefs.getString('storage_permission_consent');
+      if (cachedConsent == 'all') {
+        return FileAccessType.all;
+      } else if (cachedConsent == 'limited') {
+        return FileAccessType.limited;
+      }
+    } catch (e) {
+      debugPrint('Error reading storage consent cache: $e');
+    }
+
     PermissionStatus status = await Permission.storage.status;
     
     if (status.isGranted) {
@@ -209,6 +222,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     PermissionStatus result = await Permission.storage.request();
     if (result.isGranted) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('storage_permission_consent', 'all');
+      } catch (e) {
+        debugPrint('Error caching storage consent: $e');
+      }
       return FileAccessType.all;
     }
 
@@ -339,6 +358,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             );
           },
         );
+        if (consent != null && consent != FileAccessType.denied) {
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('storage_permission_consent', consent.name);
+          } catch (e) {
+            debugPrint('Error caching storage consent: $e');
+          }
+        }
         return consent ?? FileAccessType.denied;
       }
     }

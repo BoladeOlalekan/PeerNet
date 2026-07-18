@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../base/res/styles/app_styles.dart';
 import '../auth/application/auth_providers.dart';
 import 'ai_controller.dart';
@@ -62,6 +63,18 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   }
 
   Future<FileAccessType> _requestStoragePermission() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedConsent = prefs.getString('storage_permission_consent');
+      if (cachedConsent == 'all') {
+        return FileAccessType.all;
+      } else if (cachedConsent == 'limited') {
+        return FileAccessType.limited;
+      }
+    } catch (e) {
+      debugPrint('Error reading storage consent cache: $e');
+    }
+
     PermissionStatus status = await Permission.storage.status;
     
     if (status.isGranted) {
@@ -189,6 +202,12 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
     PermissionStatus result = await Permission.storage.request();
     if (result.isGranted) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('storage_permission_consent', 'all');
+      } catch (e) {
+        debugPrint('Error caching storage consent: $e');
+      }
       return FileAccessType.all;
     }
 
@@ -319,6 +338,14 @@ class _AiScreenState extends ConsumerState<AiScreen> {
             );
           },
         );
+        if (consent != null && consent != FileAccessType.denied) {
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('storage_permission_consent', consent.name);
+          } catch (e) {
+            debugPrint('Error caching storage consent: $e');
+          }
+        }
         return consent ?? FileAccessType.denied;
       }
     }
