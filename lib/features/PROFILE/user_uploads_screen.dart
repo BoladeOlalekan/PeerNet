@@ -607,8 +607,8 @@ class _UserUploadsScreenState extends ConsumerState<UserUploadsScreen>
                     ref.invalidate(userUploadsProvider);
                     ref.invalidate(allCoursesMapProvider);
                     await Future.wait([
-                      ref.read(userUploadsProvider.future).catchError((_) => []),
-                      ref.read(allCoursesMapProvider.future).catchError((_) => {}),
+                      ref.read(userUploadsProvider.future).catchError((_) => <Map<String, dynamic>>[]),
+                      ref.read(allCoursesMapProvider.future).catchError((_) => <String, String>{}),
                     ]);
                   },
                   color: AppStyles.primaryColor,

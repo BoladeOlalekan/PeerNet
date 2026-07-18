@@ -13,9 +13,24 @@ class CourseDetailsScreen extends StatefulWidget {
   State<CourseDetailsScreen> createState() => _CourseDetailsScreenState();
 }
 
-class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
-  int selectedIndex = 0;
+class _CourseDetailsScreenState extends State<CourseDetailsScreen>
+    with SingleTickerProviderStateMixin {
   final List<String> tabs = ["Notes", "Videos", "Past Questions"];
+  late final TabController _tabController;
+  late Future<List<Map<String, dynamic>>> _resourcesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: tabs.length, vsync: this);
+    _resourcesFuture = fetchCourseResources(widget.course.id);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,58 +159,30 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
-                height: 52,
-                padding: const EdgeInsets.all(4),
+                height: 46,
                 decoration: BoxDecoration(
-                  color: AppStyles.white,
-                  borderRadius: BorderRadius.circular(30),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: AppStyles.inputBorder),
                 ),
-                child: Row(
-                  children: List.generate(tabs.length, (index) {
-                    final isSelected = selectedIndex == index;
-                    return Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => selectedIndex = index),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOutCirc,
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppStyles.primaryColor
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(26),
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: AppStyles.primaryColor.withValues(
-                                        alpha: 0.3,
-                                      ),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ]
-                                : [],
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            tabs[index],
-                            style: TextStyle(
-                              color: isSelected
-                                  ? Colors.white
-                                  : AppStyles.labelText,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
-                              fontSize: 13,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: Colors.white,
+                  unselectedLabelColor: AppStyles.labelText,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  dividerColor: Colors.transparent,
+                  indicator: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    color: AppStyles.primaryColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppStyles.primaryColor.withValues(alpha: 0.25),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
                       ),
-                    );
-                  }),
+                    ],
+                  ),
+                  tabs: [for (final t in tabs) Tab(text: t)],
                 ),
               ),
             ),
@@ -204,21 +191,13 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
 
             // ======= Content Grid =======
             Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 100),
-                transitionBuilder: (child, animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0.1, 0),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: child,
-                    ),
-                  );
-                },
-                child: _buildTabContent(course, selectedIndex),
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildTabContent(course, 0),
+                  _buildTabContent(course, 1),
+                  _buildTabContent(course, 2),
+                ],
               ),
             ),
           ],
@@ -237,7 +216,7 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
 
     return FutureBuilder<List<Map<String, dynamic>>>(
       key: ValueKey(tabType),
-      future: fetchCourseResources(course.id),
+      future: _resourcesFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return GridView.builder(
@@ -257,7 +236,9 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
         if (snapshot.hasError) {
           return RefreshIndicator(
             onRefresh: () async {
-              setState(() {});
+              setState(() {
+                _resourcesFuture = fetchCourseResources(course.id);
+              });
             },
             color: AppStyles.primaryColor,
             child: ListView(
@@ -295,7 +276,9 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
         if (filtered.isEmpty) {
           return RefreshIndicator(
             onRefresh: () async {
-              setState(() {});
+              setState(() {
+                _resourcesFuture = fetchCourseResources(course.id);
+              });
             },
             color: AppStyles.primaryColor,
             child: ListView(
@@ -331,7 +314,9 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
 
         return RefreshIndicator(
           onRefresh: () async {
-            setState(() {});
+            setState(() {
+              _resourcesFuture = fetchCourseResources(course.id);
+            });
           },
           color: AppStyles.primaryColor,
           child: GridView.builder(

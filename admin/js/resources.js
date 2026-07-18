@@ -178,6 +178,7 @@ async function fetchAllResources() {
 
   const searchQuery = document.getElementById("resource-search")?.value.trim().toLowerCase() || "";
   const statusFilter = document.getElementById("resource-filter-status")?.value || "all";
+  const typeFilter = document.getElementById("resource-filter-type")?.value || "all";
   const deptFilter = document.getElementById("resource-filter-dept")?.value || "all";
 
   tableBody.innerHTML = `
@@ -218,6 +219,10 @@ async function fetchAllResources() {
 
     // Apply client-side filters (for search and department join)
     let filteredResources = resources;
+
+    if (typeFilter !== "all") {
+      filteredResources = filteredResources.filter(res => res.file_type === typeFilter);
+    }
 
     if (deptFilter !== "all") {
       filteredResources = filteredResources.filter(res => res.course && res.course.department === deptFilter);
@@ -574,12 +579,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Refresh and filters bindings in All Resources tab
   const searchInput = document.getElementById("resource-search");
   const filterStatus = document.getElementById("resource-filter-status");
+  const filterType = document.getElementById("resource-filter-type");
   const filterDept = document.getElementById("resource-filter-dept");
   const refreshBtn = document.getElementById("resource-refresh-btn");
   const pendingRefreshBtn = document.getElementById("pending-refresh-btn");
 
   if (searchInput) searchInput.addEventListener("input", fetchAllResources);
   if (filterStatus) filterStatus.addEventListener("change", fetchAllResources);
+  if (filterType) filterType.addEventListener("change", fetchAllResources);
   if (filterDept) filterDept.addEventListener("change", fetchAllResources);
   if (refreshBtn) refreshBtn.addEventListener("click", fetchAllResources);
   if (pendingRefreshBtn) pendingRefreshBtn.addEventListener("click", fetchPendingResources);
