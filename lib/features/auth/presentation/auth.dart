@@ -302,7 +302,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                           alignment: Alignment.centerRight,
                           child: TextButton(
                             onPressed: () {
-                              // TODO: forgot password screen
+                              context.push(RouteNames.forgotPassword);
                             },
                             style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(

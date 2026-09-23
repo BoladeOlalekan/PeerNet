@@ -175,7 +175,11 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
                   labelColor: AppStyles.white,
                   unselectedLabelColor: AppStyles.labelText,
                   indicatorSize: TabBarIndicatorSize.tab,
-                  dividerColor: Colors.transparent, // remove bottom border
+                  dividerColor: Colors.transparent,
+
+                  splashFactory: NoSplash.splashFactory,
+                  overlayColor: WidgetStatePropertyAll(Colors.transparent),
+                  
                   indicator: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
                     color: AppStyles.accentColor,

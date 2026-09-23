@@ -204,7 +204,7 @@ class ProfileScreen extends ConsumerWidget {
                       _ActionItemData(
                         icon: FluentSystemIcons.ic_fluent_shield_regular,
                         label: "Privacy Settings",
-                        onTap: () {},
+                        onTap: () => context.push(RouteNames.privacySettings),
                       ),
                     ]),
 
@@ -268,12 +268,6 @@ class ProfileScreen extends ConsumerWidget {
                             }
                           }
                         },
-                        isDestructive: true,
-                      ),
-                      _ActionItemData(
-                        icon: FluentSystemIcons.ic_fluent_delete_regular,
-                        label: "Delete Account",
-                        onTap: () {},
                         isDestructive: true,
                       ),
                     ]),

@@ -13,6 +13,8 @@ import 'package:peer_net/features/PEERai/ai_screen.dart';
 import 'package:peer_net/features/auth/data/auth_repository.dart';
 import 'package:peer_net/features/auth/presentation/auth.dart';
 import 'package:peer_net/features/auth/presentation/otp_verification_screen.dart';
+import 'package:peer_net/features/auth/presentation/forgot_password_screen.dart';
+import 'package:peer_net/features/auth/presentation/change_password_screen.dart';
 import 'package:peer_net/features/CONNECT/connect_screen.dart';
 import 'package:peer_net/features/COURSES/presentation/courses_screen.dart';
 import 'package:peer_net/features/home/home_screen.dart';
@@ -20,6 +22,7 @@ import 'package:peer_net/features/onboarding/presentation/onboarding_screen.dart
 import 'package:peer_net/features/PROFILE/downloads_screen.dart';
 import 'package:peer_net/features/PROFILE/edit_profile_screen.dart';
 import 'package:peer_net/features/PROFILE/profile_screen.dart';
+import 'package:peer_net/features/PROFILE/privacy_settings_screen.dart';
 import 'package:peer_net/features/PROFILE/user_uploads_screen.dart';
 import 'package:peer_net/main.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
@@ -128,12 +131,39 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      /// 🔑 Forgot Password
+      GoRoute(
+        path: RouteNames.forgotPassword,
+        pageBuilder: (context, state) => buildSlideTransitionPage(
+          state: state,
+          child: const ForgotPasswordScreen(),
+        ),
+      ),
+
+      /// 🔑 Change Password
+      GoRoute(
+        path: RouteNames.changePassword,
+        pageBuilder: (context, state) => buildSlideTransitionPage(
+          state: state,
+          child: const ChangePasswordScreen(),
+        ),
+      ),
+
       /// 🟪 Edit Profile
       GoRoute(
         path: RouteNames.editProfile,
         pageBuilder: (context, state) => buildSlideTransitionPage(
           state: state,
           child: const EditProfileScreen(),
+        ),
+      ),
+
+      /// 🛡️ Privacy Settings
+      GoRoute(
+        path: RouteNames.privacySettings,
+        pageBuilder: (context, state) => buildSlideTransitionPage(
+          state: state,
+          child: const PrivacySettingsScreen(),
         ),
       ),
 
@@ -344,6 +374,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final onOnboardingScreen = state.matchedLocation == RouteNames.onboarding;
       final onAuthScreen = state.matchedLocation == RouteNames.auth;
       final onOtpScreen = state.matchedLocation == RouteNames.otp;
+      final onForgotPasswordScreen =
+          state.matchedLocation == RouteNames.forgotPassword;
       final onSplashScreen = state.matchedLocation == RouteNames.splash;
 
       if (onSplashScreen) {
@@ -354,7 +386,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         return RouteNames.onboarding;
       }
 
-      if (hasSeenOnboarding && !loggedIn && !onAuthScreen && !onOtpScreen) {
+      if (hasSeenOnboarding &&
+          !loggedIn &&
+          !onAuthScreen &&
+          !onOtpScreen &&
+          !onForgotPasswordScreen) {
         return RouteNames.auth;
       }
 

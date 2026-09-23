@@ -9,8 +9,12 @@ class InputField extends StatelessWidget {
   final String? Function(String?)? validator;
   final int? minLength;
   final bool obscureText;
+  final Widget? prefixIcon;
   final Widget? suffixIcon;
   final TextInputType? keyboardType;
+  final FocusNode? focusNode;
+  final ValueChanged<String>? onChanged;
+  final VoidCallback? onTap;
 
   const InputField({
     super.key,
@@ -19,10 +23,14 @@ class InputField extends StatelessWidget {
     required this.hint,
     required this.errMsg,
     this.obscureText = false,
+    this.prefixIcon,
     this.suffixIcon,
     this.keyboardType,
     this.minLength,
     this.validator,
+    this.focusNode,
+    this.onChanged,
+    this.onTap,
   });
 
   @override
@@ -36,12 +44,16 @@ class InputField extends StatelessWidget {
 
         TextFormField(
           controller: controller,
+          focusNode: focusNode,
+          onChanged: onChanged,
+          onTap: onTap,
           autofillHints: null,
           obscureText: obscureText,
           keyboardType: keyboardType,
           style: AppStyles.inputTextStyle,
           decoration: AppStyles.inputDecoration(
             hint: hint,
+            prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
           ),
           validator:

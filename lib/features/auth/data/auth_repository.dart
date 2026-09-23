@@ -222,6 +222,67 @@ class AuthRepository {
     print('   Email: ${user.email}');
   }
 
+  // 🔐 PASSWORD RESET
+  Future<void> sendPasswordResetEmail({required String email}) async {
+    try {
+      await firebaseAuth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      print('⚠️ Error sending password reset email: $e');
+      rethrow;
+    }
+  }
+
+  // 🔐 CHANGE PASSWORD
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = firebaseAuth.currentUser;
+    if (user == null) {
+      throw Exception('No user is currently signed in.');
+    }
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+      await user.updatePassword(newPassword);
+    } catch (e) {
+      print('⚠️ Error changing password: $e');
+      rethrow;
+    }
+  }
+
+  // 🔐 DELETE ACCOUNT
+  Future<void> deleteAccount() async {
+    final user = firebaseAuth.currentUser;
+    if (user == null) {
+      throw Exception('No user is currently signed in.');
+    }
+    try {
+      // 1. Delete user from Firestore
+      await firestore.collection('users').doc(user.uid).delete();
+      
+      // 2. Delete user from Supabase (mirror)
+      try {
+        await supabase.from('users').delete().eq('firebase_uid', user.uid);
+      } catch (e) {
+        print('Supabase user delete failed: $e');
+      }
+
+      // 3. Delete from Firebase Auth
+      await user.delete();
+
+      // 4. Clean up local storage
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user');
+    } catch (e) {
+      print('⚠️ Error deleting account: $e');
+      rethrow;
+    }
+  }
+
   // 🔐 SIGN OUT
   Future<void> signOut() async {
     await firebaseAuth.signOut();

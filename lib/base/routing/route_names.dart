@@ -3,6 +3,8 @@ class RouteNames {
   static const String onboarding = '/onboarding';
   static const String auth = '/auth';
   static const String otp = '/otp';
+  static const String forgotPassword = '/forgot-password';
+  static const String changePassword = '/changePassword';
   static const String home = '/home';
   static const String connect = '/connect';
   static const String courses = '/courses';
@@ -14,5 +16,6 @@ class RouteNames {
   static const String thankYou = '/thankYou';
   static const String courseDetails = '/courseDetails';
   static const String myUploads = '/myUploads';
+  static const String privacySettings = '/privacySettings';
   static const String notifications = '/notifications';
 }

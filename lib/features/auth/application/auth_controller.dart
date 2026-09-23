@@ -290,6 +290,25 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
+  Future<void> sendPasswordReset(String email) async {
+    await _authRepository.sendPasswordResetEmail(email: email);
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await _authRepository.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+  }
+
+  Future<void> deleteAccount() async {
+    await _authRepository.deleteAccount();
+    state = const AuthState(user: const AsyncValue.data(null), flow: AuthFlow.idle);
+  }
+
   /// Step 4 → sign out
   Future<void> signOut() async {
     await _authRepository.signOut();

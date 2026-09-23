@@ -188,9 +188,11 @@ class AppStyles {
   /// Standard InputDecoration for text fields
   static InputDecoration inputDecoration({
     required String hint,
+    Widget? prefixIcon,
     Widget? suffixIcon,
   }) {
     return InputDecoration(
+      prefixIcon: prefixIcon,
       suffixIcon: suffixIcon,
       hintText: hint,
       hintStyle: inputHintStyle,

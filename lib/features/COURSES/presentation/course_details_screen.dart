@@ -171,18 +171,28 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen>
                   unselectedLabelColor: AppStyles.labelText,
                   indicatorSize: TabBarIndicatorSize.tab,
                   dividerColor: Colors.transparent,
+                  splashFactory: NoSplash.splashFactory,
+                  overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+                  labelStyle: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 13,
+                  ),
                   indicator: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(26),
                     color: AppStyles.primaryColor,
                     boxShadow: [
                       BoxShadow(
-                        color: AppStyles.primaryColor.withValues(alpha: 0.25),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
+                        color: AppStyles.primaryColor.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  tabs: [for (final t in tabs) Tab(text: t)],
+                  tabs: tabs.map((tab) => Tab(text: tab)).toList(),
                 ),
               ),
             ),
